@@ -474,6 +474,12 @@ def cmd_status(args):
         print(col(code, f"\n■ {d}. {name} — {w} % du barème"))
         print(f"  {col(code, bar)}  {done}/{len(du)} maîtrisés   " +
               "  ".join(f"{col(STATUS_COLOR[k], k.lower())}: {v}" for k, v in counts.items()))
+        skills = sorted({u.skill for u in du if u.skill})
+        mock_ok = {t.skill for t in all_units() if t.kind == "mock" and t.domain == d
+                   and st["units"].get(t.id, {}).get("exam_validated")}
+        if skills:
+            print(f"  compétences VALIDÉES EN CONDITIONS D'EXAMEN : {len(mock_ok & set(skills))}/{len(skills)}"
+                  + (col("90", "  (" + ", ".join(sorted(mock_ok & set(skills))) + ")") if mock_ok & set(skills) else ""))
         times = [st["units"][u.id]["first_seconds"] for u in du
                  if st["units"].get(u.id, {}).get("first_seconds")]
         if times:
@@ -644,8 +650,15 @@ def cmd_mock(args):
     out = OUT_BASE / f"mock-{n}"
     if sub == "start":
         print(col("90", f"Préparation de l'examen blanc {n} : {len(tasks)} tâches, clusters remis à zéro…"))
-        for t in tasks:
-            reset_unit(t, quiet=True)
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            list(pool.map(lambda t: reset_unit(t, quiet=True), tasks))
+        # Point de départ : les contrôles déjà vrais avant ton travail ne rapportent aucun point.
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            base = list(pool.map(lambda t: run_check(t, wait=0, stream=False)[0], tasks))
+        m["baseline"] = {t.id: b for t, b in zip(tasks, base)}
+        m["grades"], m["fails"] = [], {}
+        m.pop("first_score", None)
+        m.pop("converged_at", None)
         out.mkdir(parents=True, exist_ok=True)
         (out / "EXAM.md").write_text(mock_render(n, tasks, meta, intro), encoding="utf-8")
         m["started_at"] = time.time()
@@ -671,7 +684,12 @@ def cmd_mock(args):
             ok = p == scored
             (STATE_DIR / "last").mkdir(parents=True, exist_ok=True)
             (STATE_DIR / "last" / f"{t.id}.txt").write_text(o)
-            gained = t.weight * (p / scored if scored else 1)  # crédit partiel, comme à l'examen
+            # Crédit partiel, comme à l'examen, sur les seuls contrôles qui n'étaient pas déjà vrais au départ.
+            b = min(m.get("baseline", {}).get(t.id, 0), scored)
+            if scored - b > 0:
+                gained = t.weight * max(0, p - b) / (scored - b)
+            else:
+                gained = t.weight if ok else 0
             results.append((i, t, p, scored, gained, ok))
             d = by_dom.setdefault(t.domain, [0, 0])
             d[0] += gained
@@ -752,6 +770,8 @@ mock — examens blancs : mock start N · mock show N · mock time N · mock gra
 
 
 def main():
+    import signal
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)   # « ex list | head » sans trace d'erreur
     prog = Path(sys.argv[0]).name
     args = sys.argv[1:]
     if prog == "mock":
