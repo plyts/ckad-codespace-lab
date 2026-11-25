@@ -1,6 +1,6 @@
 ## Indice 1
 
-`kubectl create secret generic db-cred --from-literal=username=admin --from-literal='password=S3cr3t!'` (guillemets simples à cause du `!`).
+Un Secret générique se crée comme une ConfigMap : `kubectl create secret generic --help` (`--from-literal`). Attention au `!` en bash : guillemets simples.
 
 ## Indice 2
 
