@@ -1,0 +1,5 @@
+# Préparation de s2-jour2 (CTX, NS, OUT fournis par le lanceur)
+k(){ kubectl --context "$CTX" -n "$NS" "$@"; }
+
+k apply -f "$ROOT/app/boutique/jour1.yaml"
+for d in redis api front; do k rollout status deploy/$d --timeout=180s; done
