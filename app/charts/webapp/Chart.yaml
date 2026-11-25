@@ -1,0 +1,6 @@
+apiVersion: v2
+name: webapp
+description: Petit chart local du labo CKAD (nginx + Service). Sert aux exercices Helm.
+type: application
+version: 0.3.0
+appVersion: "1.27"

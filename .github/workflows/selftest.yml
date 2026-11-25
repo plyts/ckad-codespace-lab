@@ -1,0 +1,46 @@
+# Rejoue chaque réponse de référence sur un vrai cluster kind v1.37 :
+# le contrôle doit échouer AVANT la solution et passer APRÈS. Aucune IA n'intervient.
+name: selftest
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  selftest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Outils aux versions de versions.env
+        run: bash .devcontainer/install-tools.sh
+
+      - name: Clusters ckad-a et ckad-b
+        run: bin/lab up all
+
+      - name: Capacités mesurées (NetworkPolicy, metrics-server)
+        run: |
+          cat .progress/caps
+          # Sur un runner GitHub, ces deux capacités doivent être réelles : sinon le selftest
+          # ne prouverait pas les contrôles réseau et kubectl top.
+          grep -qx netpol=1 .progress/caps
+          grep -qx metrics=1 .progress/caps
+
+      - name: Selftest de toutes les unités
+        run: bin/ex selftest --all -j 4
+
+      - name: Rapport
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selftest
+          path: .progress/selftest.json
+          if-no-files-found: ignore
+
+      - name: Diagnostic en cas d'échec
+        if: failure()
+        run: |
+          kubectl get pods -A -o wide || true
+          kubectl get events -A --sort-by=.lastTimestamp | tail -40 || true
