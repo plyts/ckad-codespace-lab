@@ -1,0 +1,115 @@
+# Contrôleur Ingress du labo : Traefik (maintenu, gère la ressource Ingress standard).
+# Pourquoi pas ingress-nginx : le projet est en retraite depuis mars 2026 (plus de release ni de correctif).
+# Manifeste écrit à la main (pas de chart Helm) pour rester lisible et figé. Image : versions.env (TRAEFIK_IMAGE).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: traefik
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: traefik
+  namespace: traefik
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: traefik-ingress
+rules:
+- apiGroups: [""]
+  resources: ["services", "secrets", "nodes", "endpoints"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["discovery.k8s.io"]
+  resources: ["endpointslices"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses", "ingressclasses"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses/status"]
+  verbs: ["update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: traefik-ingress
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traefik-ingress
+subjects:
+- kind: ServiceAccount
+  name: traefik
+  namespace: traefik
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: traefik
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: traefik.io/ingress-controller
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik
+  namespace: traefik
+  labels:
+    app: traefik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      serviceAccountName: traefik
+      nodeSelector:
+        ingress-ready: "true"
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: traefik
+        image: traefik:v3.7.20
+        args:
+        - --entrypoints.web.address=:8000
+        - --providers.kubernetesingress=true
+        - --providers.kubernetesingress.ingressclass=traefik
+        - --ping=true
+        - --ping.entrypoint=web
+        - --log.level=INFO
+        ports:
+        - name: web
+          containerPort: 8000
+          hostPort: 80        # port 80 du nœud control-plane, publié par kind sur localhost:8080
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          periodSeconds: 5
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  selector:
+    app: traefik
+  ports:
+  - name: web
+    port: 80
+    targetPort: 8000

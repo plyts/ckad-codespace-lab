@@ -1,0 +1,13 @@
+{
+  // Aucune IA dans ce dépôt : chat et suggestions désactivés au niveau de l'espace de travail.
+  "chat.disableAIFeatures": true,
+  "github.copilot.enable": { "*": false },
+  // Les réponses restent cachées tant que tu ne les demandes pas (ex solution).
+  "files.exclude": { ".answers": true, ".progress": true },
+  "search.exclude": { ".answers": true, ".progress": true, "site": true },
+  "files.watcherExclude": { ".answers/**": true },
+  // Schémas Kubernetes pour les manifestes YAML (extension redhat.vscode-yaml).
+  "yaml.schemas": { "kubernetes": ["exercises/**/*.yaml", "app/**/*.yaml", "kind/*.yaml", "infra/*.yaml", "*.yaml"] },
+  "[yaml]": { "editor.tabSize": 2, "editor.insertSpaces": true, "editor.autoIndent": "keep" },
+  "editor.renderWhitespace": "boundary"
+}

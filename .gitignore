@@ -1,0 +1,5 @@
+.progress/
+site/
+notes/*.md
+!notes/README.md
+__pycache__/

@@ -1,0 +1,21 @@
+# Cluster principal : 1 control-plane + 2 workers, comme un petit cluster d'examen.
+# Le CNI par défaut (kindnet) applique les NetworkPolicy depuis kind v0.25 (kube-network-policies).
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: ckad-a
+networking:
+  ipFamily: ipv4
+nodes:
+- role: control-plane
+  labels:
+    ingress-ready: "true"
+  extraPortMappings:
+  - containerPort: 80     # Traefik (hostPort 80 sur le control-plane)
+    hostPort: 8080        # http://localhost:8080 dans le Codespace
+    protocol: TCP
+- role: worker
+  labels:
+    lab/zone: zone-1
+- role: worker
+  labels:
+    lab/zone: zone-2

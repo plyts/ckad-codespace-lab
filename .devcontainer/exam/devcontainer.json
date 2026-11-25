@@ -1,0 +1,27 @@
+// Configuration « exam » : bureau Linux distant (noVNC, port 6080) avec un terminal et Firefox,
+// comme le bureau XFCE de l'examen. Mot de passe du bureau : vscode. Aucune extension.
+{
+  "name": "CKAD exam",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" },
+    "ghcr.io/devcontainers/features/desktop-lite:1": { "password": "vscode", "webPort": "6080" }
+  },
+  "hostRequirements": { "cpus": 2, "memory": "8gb" },
+  "containerEnv": { "MODE": "exam" },
+  "remoteEnv": { "PATH": "${containerWorkspaceFolder}/bin:${containerEnv:PATH}" },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+  "forwardPorts": [6080, 8000],
+  "portsAttributes": {
+    "6080": { "label": "Bureau d'examen (noVNC)", "onAutoForward": "openBrowser" },
+    "8000": { "label": "Guide HTML (site)", "onAutoForward": "silent" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [],
+      "settings": { "chat.disableAIFeatures": true, "github.copilot.enable": { "*": false } }
+    }
+  }
+}

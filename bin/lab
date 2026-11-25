@@ -1,0 +1,233 @@
+#!/usr/bin/env bash
+# lab : gère les clusters kind du labo CKAD (création, réinitialisation, images, addons, tests).
+# Usage : lab help
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=/dev/null
+source "$ROOT/versions.env"
+
+c_red=$'\e[31m'; c_green=$'\e[32m'; c_yellow=$'\e[33m'; c_gray=$'\e[90m'; c_bold=$'\e[1m'; c_off=$'\e[0m'
+[[ -t 1 ]] || { c_red=; c_green=; c_yellow=; c_gray=; c_bold=; c_off=; }
+say()  { echo "${c_bold}==>${c_off} $*"; }
+ok()   { echo "${c_green}PASS${c_off} $*"; }
+warn() { echo "${c_yellow}WARN${c_off} $*"; }
+fail() { echo "${c_red}FAIL${c_off} $*"; }
+
+clusters_for() {
+  case "${1:-a}" in
+    a|ckad-a) echo ckad-a ;;
+    b|ckad-b) echo ckad-b ;;
+    all) echo ckad-a ckad-b ;;
+    *) echo "cluster inconnu : $1 (a, b ou all)" >&2; exit 2 ;;
+  esac
+}
+
+# Capacités réellement mesurées, lues par lib/check.sh (jamais supposées).
+CAPS="$ROOT/.progress/caps"
+set_cap() { mkdir -p "$ROOT/.progress"; touch "$CAPS"; sed -i "/^$1=/d" "$CAPS"; echo "$1=$2" >> "$CAPS"; }
+
+exists() { kind get clusters 2>/dev/null | grep -qx "$1"; }
+
+ensure_network() {
+  # Réseau Docker "kind" en IPv4 seul : contourne les pannes IPv6 de kind dans Codespaces.
+  if ! docker network inspect kind >/dev/null 2>&1; then
+    say "Création du réseau Docker 'kind' (IPv4 seul)"
+    docker network create -d bridge \
+      -o com.docker.network.bridge.enable_ip_masquerade=true \
+      -o com.docker.network.driver.mtu=1500 kind >/dev/null
+  fi
+}
+
+# Récupère une image dans le Docker local : Docker Hub, sinon le miroir (limite 429).
+ensure_image() {
+  local img="$1" mirror_ref
+  docker image inspect "$img" >/dev/null 2>&1 && return 0
+  if docker pull -q "$img" >/dev/null 2>&1; then return 0; fi
+  case "$img" in
+    */*/*) return 1 ;;                       # registre explicite : pas de miroir
+    */*)   mirror_ref="$IMAGE_MIRROR/$img" ;;
+    *)     mirror_ref="$IMAGE_MIRROR/library/$img" ;;
+  esac
+  docker pull -q "$mirror_ref" >/dev/null 2>&1 && docker tag "$mirror_ref" "$img"
+}
+
+# Charge une image du Docker local dans tous les nœuds d'un cluster.
+# Pas "kind load docker-image" : avec le magasin d'images containerd de Docker (>= 29),
+# docker save n'exporte qu'une plateforme et l'import --all-platforms de kind échoue.
+node_load() {
+  local cluster="$1" img="$2" arch node
+  arch="linux/$(docker version -f '{{.Server.Arch}}' 2>/dev/null || echo amd64)"
+  for node in $(kind get nodes --name "$cluster"); do
+    if ! docker exec "$node" crictl inspecti -q "$img" >/dev/null 2>&1; then
+      { docker save --platform "$arch" "$img" 2>/dev/null || docker save "$img"; } \
+        | docker exec -i "$node" ctr --namespace=k8s.io images import --digests --snapshotter=overlayfs - >/dev/null 2>&1 \
+        || return 1
+    fi
+  done
+}
+
+load_images() {
+  local cluster="$1" img
+  for img in $LAB_IMAGES; do
+    if ensure_image "$img"; then
+      node_load "$cluster" "$img" \
+        && echo "  ${c_gray}image chargée :${c_off} $img" \
+        || warn "chargement échoué pour $img (le nœud la tirera lui-même)"
+    else
+      warn "image introuvable : $img"
+    fi
+  done
+}
+
+install_addons() {
+  local cluster="$1" ctx="$1"
+  say "[$cluster] Traefik (contrôleur Ingress)"
+  kubectl --context "$ctx" apply -f "$ROOT/infra/traefik.yaml" >/dev/null
+  say "[$cluster] metrics-server (kubectl top)"
+  # Installé seulement si l'image est là : un metrics-server en échec laisse une APIService
+  # metrics.k8s.io cassée, qui bloque ensuite la suppression des namespaces (Terminating).
+  if ensure_image "$METRICS_SERVER_IMAGE" && node_load "$cluster" "$METRICS_SERVER_IMAGE"; then
+    kubectl --context "$ctx" apply -f "$ROOT/infra/metrics-server-v0.8.0.yaml" >/dev/null
+    set_cap metrics 1
+  else
+    set_cap metrics 0
+    warn "image metrics-server inaccessible : non installé (kubectl top indisponible, exercices metrics-server en SKIP)"
+  fi
+  kubectl --context "$ctx" -n traefik rollout status deploy/traefik --timeout=180s >/dev/null \
+    && ok "[$cluster] Traefik prêt" || warn "[$cluster] Traefik pas encore prêt"
+}
+
+create_cluster() {
+  local cluster="$1"
+  if exists "$cluster"; then echo "${c_gray}$cluster existe déjà${c_off}"; return 0; fi
+  ensure_network
+  say "Création du cluster $cluster ($K8S_VERSION)"
+  local cfg="$ROOT/kind/$cluster.yaml"
+  # Correctifs pour hôtes restreints, appliqués seulement si détectés et toujours signalés.
+  # Codespaces (cgroup v2, conteneur privilégié) n'en a normalement besoin d'aucun.
+  local need_cg=0 need_oom=0
+  [[ "$(stat -fc %T /sys/fs/cgroup 2>/dev/null)" == "cgroup2fs" ]] || need_cg=1
+  sh -c 'echo -500 > /proc/self/oom_score_adj' 2>/dev/null || need_oom=1
+  if (( need_cg || need_oom )); then
+    cfg="$(mktemp --suffix=.yaml)"; cp "$ROOT/kind/$cluster.yaml" "$cfg"
+    if (( need_cg )); then
+      # Kubernetes >= 1.35 refuse cgroup v1 par défaut (failCgroupV1).
+      warn "hôte en cgroup v1 : ajout de failCgroupV1: false au kubelet"
+      printf '%s\n' 'kubeadmConfigPatches:' '- |' '  kind: KubeletConfiguration' '  failCgroupV1: false' >> "$cfg"
+    fi
+    if (( need_oom )); then
+      # Sans CAP_SYS_RESOURCE, runc ne peut pas baisser oom_score_adj : containerd doit le borner.
+      warn "hôte sans CAP_SYS_RESOURCE : ajout de restrict_oom_score_adj à containerd"
+      printf '%s\n' 'containerdConfigPatches:' '- |-' '  [plugins."io.containerd.cri.v1.runtime"]' '    restrict_oom_score_adj = true' >> "$cfg"
+    fi
+  fi
+  kind create cluster --config "$cfg" --image "$K8S_NODE_IMAGE" --wait 180s
+  # Contexte nommé comme le cluster (ckad-a), à la manière de l'examen.
+  kubectl config delete-context "$cluster" >/dev/null 2>&1 || true
+  kubectl config rename-context "kind-$cluster" "$cluster" >/dev/null
+  load_images "$cluster"
+  install_addons "$cluster"
+  netpol_test "$cluster" || true
+  kubectl config use-context ckad-a >/dev/null 2>&1 || kubectl config use-context "$cluster" >/dev/null
+}
+
+delete_cluster() {
+  local cluster="$1"
+  exists "$cluster" || return 0
+  say "Suppression du cluster $cluster"
+  kind delete cluster --name "$cluster"
+  kubectl config delete-context "$cluster" >/dev/null 2>&1 || true
+}
+
+netpol_test() {
+  # Preuve réelle que les NetworkPolicy sont appliquées : un deny-all doit couper le trafic.
+  local ctx="${1:-ckad-a}" ns="lab-netpol-test" k="kubectl --context ${1:-ckad-a}"
+  $k delete ns "$ns" --ignore-not-found --wait=true >/dev/null
+  $k create ns "$ns" >/dev/null
+  $k -n "$ns" run web --image=nginx:1.27-alpine --labels=app=web --port=80 >/dev/null
+  $k -n "$ns" expose pod web --port=80 >/dev/null
+  $k -n "$ns" run client --image=busybox:1.37 --labels=app=client -- sleep 3600 >/dev/null
+  $k -n "$ns" wait --for=condition=Ready pod/web pod/client --timeout=120s >/dev/null
+  local before after
+  before=$($k -n "$ns" exec client -- wget -qO- -T 3 http://web 2>&1 | grep -c "Welcome to nginx" || true)
+  $k -n "$ns" apply -f - >/dev/null <<'EOF'
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+EOF
+  local i
+  for i in 1 2 3 4 5; do
+    after=$($k -n "$ns" exec client -- wget -qO- -T 3 http://web 2>&1 | grep -c "Welcome to nginx" || true)
+    [[ "$after" == "0" ]] && break
+    sleep 2
+  done
+  $k delete ns "$ns" --wait=false >/dev/null
+  local before_n="$before"; before="${before_n:-0}"
+  if [[ "$before" -ge 1 && "$after" == "0" ]]; then
+    ok "[$ctx] NetworkPolicy appliquées : trafic OK avant deny-all, coupé après"
+    set_cap netpol 1
+  else
+    fail "[$ctx] NetworkPolicy NON appliquées (avant=$before après=$after) : les contrôles réseau passeront en SKIP"
+    set_cap netpol 0; return 1
+  fi
+}
+
+status() {
+  echo "${c_bold}Versions${c_off} : kind $(kind version 2>/dev/null | awk '{print $2}'), kubectl $(kubectl version --client -o json 2>/dev/null | sed -n 's/.*"gitVersion": "\(v[^"]*\)".*/\1/p' | head -1), nœud $K8S_VERSION"
+  echo "${c_bold}Clusters${c_off} : $(kind get clusters 2>/dev/null | tr '\n' ' ')"
+  echo "${c_bold}Contexte courant${c_off} : $(kubectl config current-context 2>/dev/null || echo aucun)"
+  local c
+  for c in $(kind get clusters 2>/dev/null); do
+    echo "--- $c"; kubectl --context "$c" get nodes 2>/dev/null || true
+  done
+}
+
+# Simule "ssh <hôte>" de l'examen : un shell dont le kubeconfig ne connaît qu'un cluster.
+lab_ssh() {
+  local host="${1:?usage : lab ssh ckad-a|ckad-b}" tmp
+  exists "$host" || { fail "cluster $host absent (lab up ${host#ckad-})"; exit 1; }
+  tmp="$(mktemp -d)"
+  kubectl config view --minify --flatten --context "$host" > "$tmp/config"
+  cat > "$tmp/rc" <<EOF
+[ -f ~/.bashrc ] && source ~/.bashrc
+export KUBECONFIG="$tmp/config"
+alias k=kubectl
+complete -o default -F __start_kubectl k 2>/dev/null || true
+PS1='candidate@$host:\w\$ '
+echo "Connecté à $host (tape exit pour revenir à la base)"
+EOF
+  bash --rcfile "$tmp/rc" -i || true
+  rm -rf "$tmp"
+}
+
+usage() {
+  cat <<EOF
+lab — clusters kind du labo CKAD ($K8S_VERSION)
+
+  lab up [a|b|all]      crée le(s) cluster(s) (défaut : a), images préchargées, Traefik, metrics-server
+  lab reset [a|b|all]   détruit puis recrée (cluster propre en une commande)
+  lab down [a|b|all]    détruit (défaut : all)
+  lab status            versions, clusters, nœuds
+  lab netpol-test [ctx] prouve que les NetworkPolicy coupent réellement le trafic
+  lab images [a|b|all]  recharge les images des exercices dans les nœuds
+  lab ssh ckad-a        shell limité à un cluster, comme "ssh <hôte>" à l'examen
+EOF
+}
+
+cmd="${1:-help}"; shift || true
+case "$cmd" in
+  up)     for c in $(clusters_for "${1:-a}"); do create_cluster "$c"; done ;;
+  reset)  for c in $(clusters_for "${1:-a}"); do delete_cluster "$c"; create_cluster "$c"; done ;;
+  down)   for c in $(clusters_for "${1:-all}"); do delete_cluster "$c"; done ;;
+  status) status ;;
+  netpol-test) netpol_test "${1:-ckad-a}" ;;
+  images) for c in $(clusters_for "${1:-a}"); do load_images "$c"; done ;;
+  ssh)    lab_ssh "${1:-}" ;;
+  help|-h|--help) usage ;;
+  *) usage; exit 2 ;;
+esac

@@ -1,0 +1,5 @@
+{
+  // Seules extensions recommandées ; aucune extension d'IA.
+  "recommendations": ["ms-kubernetes-tools.vscode-kubernetes-tools", "redhat.vscode-yaml"],
+  "unwantedRecommendations": ["github.copilot", "github.copilot-chat", "anthropic.claude-code", "openai.chatgpt"]
+}

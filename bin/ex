@@ -1,0 +1,770 @@
+#!/usr/bin/env python3
+"""ex / mock — moteur du labo CKAD (aucune IA : tout est écrit d'avance dans le dépôt).
+
+Unités : exercices (exercises/), scénarios (scenarios/), tâches d'examens blancs (mock-exams/).
+Chaque unité = un dossier avec task.md (front matter + consigne), setup.sh (facultatif),
+check.sh (contrôles de l'état du cluster), hints.md (indices 1 à 3).
+Réponse cachée : .answers/<id>/solution.sh (commandes commentées, explications, variantes).
+"""
+import datetime as dt
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+STATE_DIR = Path(os.environ.get("CKAD_STATE_DIR", ROOT / ".progress"))
+STATE_FILE = STATE_DIR / "progress.json"
+OUT_BASE = Path(os.environ.get("CKAD_OUT", Path.home() / "ckad"))
+QUESTIONS_DIR = Path.home() / "ckad-questions"
+TRIES_BEFORE_SOLUTION = 3
+
+DOMAINS = {
+    "1": ("Application Design and Build", 20, "bleu", "34"),
+    "2": ("Application Deployment", 20, "jaune", "33"),
+    "3": ("Application Observability and Maintenance", 15, "vert", "32"),
+    "4": ("Application Environment, Configuration and Security", 25, "orange", "38;5;208"),
+    "5": ("Services and Networking", 20, "violet", "35"),
+}
+LEVELS = ["debutant", "intermediaire", "avance", "examen"]
+
+TTY = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
+
+
+def col(code, text):
+    return f"\033[{code}m{text}\033[0m" if TTY else text
+
+
+def bold(t):
+    return col("1", t)
+
+
+def die(msg, code=1):
+    print(col("31", msg), file=sys.stderr)
+    sys.exit(code)
+
+
+# ---------------------------------------------------------------- unités
+class Unit:
+    def __init__(self, path: Path, kind: str):
+        self.path = path
+        self.kind = kind  # exercise | scenario | mock
+        text = (path / "task.md").read_text(encoding="utf-8")
+        m = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.S)
+        if not m:
+            raise ValueError(f"front matter manquant : {path}/task.md")
+        self.meta = {}
+        for line in m.group(1).splitlines():
+            if ":" in line:
+                key, val = line.split(":", 1)
+                self.meta[key.strip()] = val.strip()
+        self.body = m.group(2).strip()
+        self.id = self.meta["id"]
+        self.title = self.meta.get("title", self.id)
+        self.domain = self.meta.get("domain", "0")
+        self.level = self.meta.get("level", "")
+        self.ctx = self.meta.get("context", "ckad-a")
+        self.ns = self.meta.get("namespace", "default")
+        self.namespaces = self.meta.get("namespaces", self.ns).split()
+        self.cleanup = self.meta.get("cleanup", "").split()
+        self.time = int(self.meta.get("time", "5"))
+        self.weight = int(self.meta.get("weight", "0") or 0)
+        self.doc = self.meta.get("doc", "https://kubernetes.io/docs/")
+        self.skill = self.meta.get("skill", "")
+        self.requires = self.meta.get("requires", "").split()
+
+    @property
+    def answer_dir(self):
+        return ROOT / ".answers" / self.id
+
+    @property
+    def out(self):
+        return OUT_BASE / self.id
+
+    def env(self, wait=None):
+        e = dict(os.environ)
+        e.update(CTX=self.ctx, NS=self.ns, DOC=self.doc, OUT=str(self.out), ROOT=str(ROOT),
+                 UNIT_DIR=str(self.path), CAPS_FILE=str(STATE_DIR / "caps"))
+        if wait is not None:
+            e["CHECK_WAIT"] = str(wait)
+        return e
+
+
+def all_units():
+    units = []
+    for p in sorted((ROOT / "exercises").glob("*/*/task.md")):
+        units.append(Unit(p.parent, "exercise"))
+    for p in sorted((ROOT / "scenarios").glob("*/task.md")):
+        units.append(Unit(p.parent, "scenario"))
+    for p in sorted((ROOT / "mock-exams").glob("mock-*/tasks/*/task.md")):
+        units.append(Unit(p.parent, "mock"))
+    return units
+
+
+def find_unit(uid):
+    for u in all_units():
+        if u.id == uid:
+            return u
+    die(f"unité inconnue : {uid}  (ex list pour la liste)")
+
+
+def caps():
+    c = {}
+    f = STATE_DIR / "caps"
+    if f.exists():
+        for line in f.read_text().splitlines():
+            if "=" in line:
+                k, v = line.split("=", 1)
+                c[k] = v == "1"
+    return c
+
+
+def missing_caps(u):
+    c = caps()
+    return [r for r in u.requires if not c.get(r.replace("metrics-server", "metrics"), False)]
+
+
+# ---------------------------------------------------------------- état
+def load_state():
+    if STATE_FILE.exists():
+        return json.loads(STATE_FILE.read_text())
+    return {"units": {}, "mocks": {}}
+
+
+def save_state(st):
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    tmp = STATE_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(st, indent=2, ensure_ascii=False))
+    tmp.replace(STATE_FILE)
+
+
+def now():
+    return dt.datetime.now().replace(microsecond=0)
+
+
+def unit_state(st, uid):
+    return st["units"].setdefault(uid, {"attempts": 0, "fails": 0, "hints": 0, "solution_seen": False,
+                                        "history": []})
+
+
+def status_of(s):
+    """Statut pédagogique : jamais 'maîtrisé' parce qu'on a lu, seulement parce qu'on a réussi."""
+    if not s or not s.get("started_at"):
+        return "NON COMMENCÉ"
+    if s.get("exam_validated"):
+        return "VALIDÉ EN CONDITIONS D'EXAMEN"
+    if not s.get("converged_at"):
+        return "EN APPRENTISSAGE"
+    if s.get("first_score") == 1.0 and not s.get("hints") and not s.get("solution_seen"):
+        return "MAÎTRISÉ"
+    if any(h.get("clean") for h in s.get("reviews_done", [])):
+        return "MAÎTRISÉ"
+    return "À RENFORCER"
+
+
+STATUS_COLOR = {"NON COMMENCÉ": "90", "EN APPRENTISSAGE": "33", "À RENFORCER": "38;5;208",
+                "MAÎTRISÉ": "32", "VALIDÉ EN CONDITIONS D'EXAMEN": "1;32"}
+
+
+# ---------------------------------------------------------------- kubectl
+def kubectl(ctx, *args, check=False, capture=True):
+    return subprocess.run(["kubectl", "--context", ctx, *args], text=True,
+                          capture_output=capture, check=check)
+
+
+def reset_unit(u: Unit, quiet=False):
+    """Remet l'unité à zéro : namespaces recréés, ressources de cluster supprimées, setup rejoué."""
+    if kubectl(u.ctx, "version", "--request-timeout=5s").returncode != 0:
+        die(f"cluster {u.ctx} injoignable. Lance : lab up {u.ctx.replace('ckad-', '')}")
+    for res in u.cleanup:
+        kubectl(u.ctx, "delete", res, "--ignore-not-found", "--wait=true", "--timeout=60s")
+    for ns in u.namespaces:
+        if ns != "default":
+            kubectl(u.ctx, "delete", "namespace", ns, "--ignore-not-found", "--wait=true", "--timeout=120s")
+    for ns in u.namespaces:
+        if ns != "default":
+            kubectl(u.ctx, "create", "namespace", ns)
+            kubectl(u.ctx, "label", "namespace", ns, f"lab/unit={u.id}", "--overwrite")
+    # Le ServiceAccount "default" arrive juste après le namespace : sans lui, tout Pod est refusé.
+    for ns in u.namespaces:
+        for _ in range(30):
+            if kubectl(u.ctx, "-n", ns, "get", "serviceaccount", "default").returncode == 0:
+                break
+            time.sleep(1)
+    if u.out.exists():
+        shutil.rmtree(u.out)
+    u.out.mkdir(parents=True, exist_ok=True)
+    setup = u.path / "setup.sh"
+    if setup.exists():
+        r = subprocess.run(["bash", "-e", str(setup)], env=u.env(), cwd=u.out, text=True,
+                           capture_output=True)
+        if r.returncode != 0:
+            print(r.stdout + r.stderr)
+            die(f"setup de {u.id} en échec (bug du labo : signale-le, ce n'est pas ta faute)")
+    elif not quiet:
+        pass
+
+
+def run_check(u: Unit, wait=None, stream=True):
+    """Lance check.sh ; renvoie (pass, total, skip, sortie)."""
+    proc = subprocess.Popen(["bash", "-c", f'source "{ROOT}/lib/check.sh"; source "{u.path}/check.sh"'],
+                            env=u.env(wait), cwd=u.out if u.out.exists() else ROOT,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    lines = []
+    for line in proc.stdout:
+        if line.startswith("RESULT "):
+            lines.append(line)
+            continue
+        lines.append(line)
+        if stream:
+            sys.stdout.write(line)
+            sys.stdout.flush()
+    proc.wait()
+    out = "".join(lines)
+    m = re.search(r"RESULT pass=(\d+) total=(\d+) skip=(\d+)", out)
+    if not m:
+        return 0, 1, 0, out + "\n(check.sh n'a rien rapporté : bug du labo)"
+    return int(m.group(1)), int(m.group(2)), int(m.group(3)), re.sub(r"RESULT .*\n?", "", out)
+
+
+def header(u: Unit):
+    name, weight, color, code = DOMAINS.get(u.domain, ("Fil conducteur", 0, "gris", "37"))
+    bar = col(code, "█" * 3)
+    print(f"{bar} {bold(u.id)} — {u.title}")
+    print(col("90", f"    domaine {u.domain} · {name} ({weight} %) · niveau {u.level} · {u.time} min indicatives"))
+    print(f"    {bold('Contexte')} : kubectl config use-context {u.ctx}    "
+          f"{bold('Namespace')} : {u.ns}")
+    print(col("90", f"    Doc : {u.doc}"))
+    print()
+
+
+# ---------------------------------------------------------------- commandes ex
+def cmd_list(args):
+    st = load_state()
+    flt = args[0] if args else None
+    cur = None
+    for u in all_units():
+        if u.kind == "mock":
+            continue
+        if flt and not (u.domain == flt or u.id.startswith(flt) or u.kind == flt or u.level == flt):
+            continue
+        key = u.domain if u.kind == "exercise" else "S"
+        if key != cur:
+            cur = key
+            if u.kind == "exercise":
+                name, w, color, code = DOMAINS[u.domain]
+                print("\n" + col(code, f"■ Domaine {u.domain} — {name} ({w} %)"))
+            else:
+                print("\n" + col("37", "■ Scénarios (fil conducteur et pannes)"))
+        s = st["units"].get(u.id)
+        stt = status_of(s)
+        print(f"  {u.id:<12} {u.level:<14} {u.time:>3} min  {col(STATUS_COLOR[stt], f'{stt:<16}')} {u.title}")
+    print()
+
+
+def cmd_start(args):
+    if not args:
+        die("usage : ex start <id>")
+    u = find_unit(args[0])
+    miss = missing_caps(u)
+    if miss:
+        print(col("33", f"WARN ce cluster n'a pas : {', '.join(miss)} — certains contrôles passeront en SKIP."))
+    print(col("90", f"Préparation de {u.id} (namespaces remis à zéro)…"))
+    reset_unit(u)
+    st = load_state()
+    s = unit_state(st, u.id)
+    s["started_at"] = s.get("started_at") or now().isoformat()
+    s["current_start"] = time.time()
+    s["current_attempts"] = 0
+    save_state(st)
+    header(u)
+    print(u.body)
+    print()
+    print(col("90", f"Fichiers réponse éventuels : {u.out}"))
+    print(col("90", f"Quand tu as fini : ex check {u.id}    ·  indice : ex hint {u.id}"))
+    cur = kubectl(u.ctx, "config", "current-context").stdout.strip()
+    if cur != u.ctx:
+        print(col("33", f"\n⚠ Contexte courant : {cur or 'aucun'}. Premier réflexe : kubectl config use-context {u.ctx}"))
+
+
+def cmd_check(args):
+    if not args:
+        die("usage : ex check <id>")
+    u = find_unit(args[0])
+    st = load_state()
+    s = unit_state(st, u.id)
+    if not s.get("current_start"):
+        print(col("33", f"(exercice non démarré : lance d'abord ex start {u.id})"))
+    header(u)
+    p, t, sk, out = run_check(u)
+    elapsed = int(time.time() - s["current_start"]) if s.get("current_start") else None
+    (STATE_DIR / "last").mkdir(parents=True, exist_ok=True)
+    (STATE_DIR / "last" / f"{u.id}.txt").write_text(out)
+    s["attempts"] += 1
+    s["current_attempts"] = s.get("current_attempts", 0) + 1
+    scored = t - sk
+    score = (p / scored) if scored else 1.0
+    if s.get("first_score") is None and s.get("current_start"):
+        s["first_score"] = round(score, 3)
+        s["first_at"] = now().isoformat()
+        s["first_seconds"] = elapsed
+        print(col("90", "\nScore à la sonnerie enregistré (il ne changera plus) : ") +
+              bold(f"{p}/{scored}"))
+    s["history"].append({"at": now().isoformat(), "pass": p, "total": scored, "seconds": elapsed})
+    print()
+    if p == scored:
+        mins = f" en {elapsed // 60} min {elapsed % 60:02d} s" if elapsed else ""
+        print(col("32", f"✔ Tout est au vert{mins}. Exercice convergé."))
+        if not s.get("converged_at"):
+            s["converged_at"] = now().isoformat()
+            d = now().date()
+            s["reviews"] = [str(d + dt.timedelta(days=2)), str(d + dt.timedelta(days=7))]
+            print(col("90", f"   Il reviendra à J+2 ({s['reviews'][0]}) et J+7 ({s['reviews'][1]}) dans ex status."))
+        else:
+            due = [r for r in s.get("reviews", []) if r <= str(now().date())]
+            if due:
+                clean = s.get("current_attempts") == 1
+                s.setdefault("reviews_done", []).append({"date": due[0], "clean": clean})
+                s["reviews"].remove(due[0])
+                print(col("90", f"   Révision {due[0]} faite{' du premier coup' if clean else ''}."))
+        if sk:
+            print(col("90", f"   ({sk} contrôle(s) en SKIP : non vérifiables sur ce cluster.)"))
+        s["current_start"] = None
+        print(col("90", f"   Note ce que tu retiens : notes/{u.id}.md"))
+    else:
+        s["fails"] += 1
+        left = TRIES_BEFORE_SOLUTION - s["fails"]
+        print(col("31", f"✘ {scored - p} contrôle(s) en échec sur {scored}."))
+        cur = kubectl(u.ctx, "config", "current-context").stdout.strip()
+        if cur != u.ctx:
+            print(col("33", f"  ⚠ Ton contexte courant est {cur}, l'exercice est sur {u.ctx}."))
+        print(f"  Corrige puis relance : ex check {u.id}   ·  indice : ex hint {u.id}")
+        if left > 0:
+            print(col("90", f"  Solution déverrouillée après {left} autre(s) essai(s) raté(s) (ou ex solution {u.id} --force)."))
+        else:
+            print(col("90", f"  Solution disponible : ex solution {u.id}   ·   question pour une IA externe : ex ask {u.id}"))
+    save_state(st)
+    sys.exit(0 if p == scored else 1)
+
+
+def read_hints(u):
+    f = u.path / "hints.md"
+    if not f.exists():
+        return []
+    parts = re.split(r"^## .*$", f.read_text(encoding="utf-8"), flags=re.M)
+    return [p.strip() for p in parts if p.strip()]
+
+
+def cmd_hint(args):
+    if not args:
+        die("usage : ex hint <id> [1|2|3]")
+    u = find_unit(args[0])
+    hints = read_hints(u)
+    if not hints:
+        die("pas d'indice pour cette unité")
+    st = load_state()
+    s = unit_state(st, u.id)
+    n = int(args[1]) if len(args) > 1 else min(s.get("hints", 0) + 1, len(hints))
+    n = max(1, min(n, len(hints)))
+    s["hints"] = max(s.get("hints", 0), n)
+    save_state(st)
+    print(bold(f"Indice {n}/{len(hints)} — {u.id}"))
+    print(hints[n - 1])
+
+
+def cmd_solution(args):
+    if not args:
+        die("usage : ex solution <id> [--force]")
+    u = find_unit(args[0])
+    st = load_state()
+    s = unit_state(st, u.id)
+    force = "--force" in args
+    if s.get("fails", 0) < TRIES_BEFORE_SOLUTION and not force:
+        die(f"Encore {TRIES_BEFORE_SOLUTION - s.get('fails', 0)} essai(s) avant la solution. "
+            f"Tu peux la forcer : ex solution {u.id} --force")
+    f = u.answer_dir / "solution.sh"
+    if not f.exists():
+        die("solution absente (bug du labo)")
+    s["solution_seen"] = True
+    save_state(st)
+    print(bold(f"Solution de référence — {u.id}") + col("90", f"  ({f.relative_to(ROOT)})"))
+    print(col("90", "Applique-la toi-même, puis : ex check " + u.id))
+    print()
+    for line in f.read_text(encoding="utf-8").splitlines():
+        if line.startswith("#!"):
+            continue
+        print(col("90", line) if line.lstrip().startswith("#") else line)
+
+
+def cmd_reset(args):
+    if not args:
+        die("usage : ex reset <id>")
+    u = find_unit(args[0])
+    reset_unit(u)
+    print(col("32", f"{u.id} remis à zéro."))
+
+
+def cmd_ask(args):
+    if not args:
+        die("usage : ex ask <id>")
+    u = find_unit(args[0])
+    QUESTIONS_DIR.mkdir(parents=True, exist_ok=True)
+    last = STATE_DIR / "last" / f"{u.id}.txt"
+    state = []
+    for ns in u.namespaces:
+        r = kubectl(u.ctx, "-n", ns, "get", "all,cm,secret,pvc,ing,netpol,sa,role,rolebinding", "-o", "wide")
+        state.append(f"$ kubectl -n {ns} get all,cm,secret,pvc,ing,netpol,sa,role,rolebinding -o wide\n{r.stdout}{r.stderr}")
+        r = kubectl(u.ctx, "-n", ns, "get", "events", "--sort-by=.lastTimestamp")
+        state.append(f"$ kubectl -n {ns} get events --sort-by=.lastTimestamp\n" + "\n".join((r.stdout + r.stderr).splitlines()[-25:]))
+    notes = ROOT / "notes" / f"{u.id}.md"
+    f = QUESTIONS_DIR / f"{u.id}-{now().strftime('%Y%m%d-%H%M%S')}.md"
+    f.write_text(f"""# Question CKAD — {u.id} : {u.title}
+
+Je prépare le CKAD (Kubernetes {os.environ.get('K8S_VERSION', 'v1.37')}). Voici un exercice de mon labo,
+mon état actuel et la sortie du script de vérification. Explique-moi ce que je n'ai pas compris,
+sans me donner directement toute la solution : d'abord un indice, puis l'explication.
+
+## Consigne (contexte {u.ctx}, namespace {u.ns})
+
+{u.body}
+
+## Dernière vérification
+
+```text
+{last.read_text() if last.exists() else '(pas encore de ex check)'}
+```
+
+## État du cluster
+
+```text
+{chr(10).join(state)}
+```
+
+## Mes notes
+
+{notes.read_text() if notes.exists() else '(aucune)'}
+
+## Ma question
+
+(écris ta question ici)
+""", encoding="utf-8")
+    print(f"Fichier prêt : {f}")
+    print(col("90", "Le labo n'appelle aucune IA : ouvre ce fichier, complète « Ma question », "
+                    "et colle-le toi-même dans l'outil de ton choix, hors du labo."))
+
+
+def cmd_status(args):
+    st = load_state()
+    units = [u for u in all_units() if u.kind != "mock"]
+    today = str(now().date())
+    print(bold("Tableau de progression CKAD"))
+    for d, (name, w, color, code) in DOMAINS.items():
+        du = [u for u in units if u.domain == d]
+        counts = {}
+        for u in du:
+            counts[status_of(st["units"].get(u.id))] = counts.get(status_of(st["units"].get(u.id)), 0) + 1
+        done = sum(v for k, v in counts.items() if k in ("MAÎTRISÉ", "VALIDÉ EN CONDITIONS D'EXAMEN"))
+        bar = "█" * done + "░" * (len(du) - done)
+        print(col(code, f"\n■ {d}. {name} — {w} % du barème"))
+        print(f"  {col(code, bar)}  {done}/{len(du)} maîtrisés   " +
+              "  ".join(f"{col(STATUS_COLOR[k], k.lower())}: {v}" for k, v in counts.items()))
+        times = [st["units"][u.id]["first_seconds"] for u in du
+                 if st["units"].get(u.id, {}).get("first_seconds")]
+        if times:
+            print(col("90", f"  temps moyen jusqu'au premier ex check : {sum(times) // len(times) // 60} min"))
+    due = []
+    for u in units:
+        for r in st["units"].get(u.id, {}).get("reviews", []):
+            if r <= today:
+                due.append(u.id)
+    print("\n" + bold("À réviser aujourd'hui : ") + (" ".join(sorted(set(due))) or "rien"))
+    fails = sorted(((s.get("fails", 0), uid) for uid, s in st["units"].items() if s.get("fails")), reverse=True)[:5]
+    if fails:
+        print(bold("Exercices les plus ratés : ") + ", ".join(f"{uid} ({n})" for n, uid in fails))
+    if st.get("mocks"):
+        print("\n" + bold("Examens blancs"))
+        for n, m in sorted(st["mocks"].items()):
+            fs = m.get("first_score")
+            print(f"  mock {n} : à la sonnerie {fs if fs is not None else '-'} %"
+                  f"{'  · convergé' if m.get('converged_at') else ''}")
+    print(col("90", "\nUne notion n'est MAÎTRISÉE qu'après un exercice réussi sans aide, et VALIDÉE "
+                    "qu'en examen blanc chronométré."))
+
+
+def cmd_next(args):
+    st = load_state()
+    today = str(now().date())
+    units = [u for u in all_units() if u.kind == "exercise"]
+    for u in units:
+        if any(r <= today for r in st["units"].get(u.id, {}).get("reviews", [])):
+            print(f"Révision due : ex start {u.id}   ({u.title})")
+            return
+    for u in units:
+        if status_of(st["units"].get(u.id)) in ("NON COMMENCÉ", "EN APPRENTISSAGE"):
+            print(f"Prochain : ex start {u.id}   ({u.title})")
+            return
+    print("Tous les exercices sont convergés. Passe aux examens blancs : mock start 1")
+
+
+def cmd_scenario(args):
+    if not args or args[0] == "list":
+        cmd_list(["scenario"])
+    else:
+        cmd_start(args)
+
+
+# ---------------------------------------------------------------- selftest
+def selftest_unit(u: Unit):
+    """La vérification doit échouer avant la réponse de référence et passer après."""
+    t0 = time.time()
+    miss = missing_caps(u)
+    if any(r == "metrics-server" for r in miss):
+        return (u.id, "SKIP", f"requiert {' '.join(miss)}", 0)
+    sol = u.answer_dir / "solution.sh"
+    if not sol.exists():
+        return (u.id, "FAIL", "pas de .answers/<id>/solution.sh", 0)
+    try:
+        reset_unit(u, quiet=True)
+    except SystemExit:
+        return (u.id, "FAIL", "setup en échec", 0)
+    p, t, sk, out = run_check(u, wait=0, stream=False)
+    if t == 0:
+        return (u.id, "FAIL", "aucun contrôle", 0)
+    if p == t - sk:
+        return (u.id, "FAIL", f"la vérification passe AVANT la solution ({p}/{t})", 0)
+    # kubeconfig privé : "kubectl config use-context" dans une solution ne gêne pas les autres unités.
+    import tempfile
+    kc = Path(tempfile.mkstemp(prefix="selftest-kubeconfig-")[1])
+    kc.write_text(subprocess.run(["kubectl", "config", "view", "--flatten"], text=True,
+                                 capture_output=True).stdout)
+    env = u.env()
+    env["KUBECONFIG"] = str(kc)
+    r = subprocess.run(["bash", "-e", str(sol)], env=env, cwd=u.out, text=True, capture_output=True)
+    kc.unlink(missing_ok=True)
+    if r.returncode != 0:
+        return (u.id, "FAIL", "solution.sh en erreur :\n" + (r.stdout + r.stderr)[-1500:], 0)
+    p2, t2, sk2, out2 = run_check(u, wait=int(os.environ.get("SELFTEST_WAIT", "120")), stream=False)
+    dur = int(time.time() - t0)
+    if p2 != t2 - sk2:
+        return (u.id, "FAIL", f"après solution : {p2}/{t2 - sk2}\n" + out2[-2500:], dur)
+    note = f"avant {p}/{t - sk} → après {p2}/{t2 - sk2}" + (f", {sk2} SKIP" if sk2 else "")
+    if os.environ.get("SELFTEST_KEEP") != "1":
+        for ns in u.namespaces:
+            if ns != "default":
+                kubectl(u.ctx, "delete", "namespace", ns, "--wait=false")
+        for res in u.cleanup:
+            kubectl(u.ctx, "delete", res, "--ignore-not-found", "--wait=false")
+    return (u.id, "PASS" if not sk2 else "PASS*", note, dur)
+
+
+def cmd_selftest(args):
+    jobs = 3
+    if "-j" in args:
+        i = args.index("-j")
+        jobs = int(args[i + 1])
+        args = args[:i] + args[i + 2:]
+    units = all_units()
+    if args and args[0] != "--all":
+        sel = []
+        for a in args:
+            sel += [u for u in units if u.id == a or u.id.startswith(a + "-") or u.id.startswith(a)
+                    or u.kind == a or str(u.path.relative_to(ROOT)).startswith(a)]
+        units = list(dict.fromkeys(sel))
+    print(bold(f"selftest : {len(units)} unité(s), {jobs} en parallèle"))
+    results = []
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        for res in pool.map(selftest_unit, units):
+            uid, verdict, note, dur = res
+            c = {"PASS": "32", "PASS*": "32", "FAIL": "31", "SKIP": "90"}[verdict]
+            print(f"{col(c, f'{verdict:<5}')} {uid:<14} {dur:>4}s  {note.splitlines()[0] if note else ''}")
+            if verdict == "FAIL" and "\n" in note:
+                print(col("90", "      " + "\n      ".join(note.splitlines()[1:])))
+            results.append(res)
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    (STATE_DIR / "selftest.json").write_text(json.dumps(
+        [{"id": r[0], "verdict": r[1], "note": r[2], "seconds": r[3]} for r in results], indent=1))
+    nfail = sum(1 for r in results if r[1] == "FAIL")
+    print(bold(f"\n{len(results) - nfail}/{len(results)} OK") +
+          (col("90", "  (PASS* = certains contrôles en SKIP sur ce cluster)") if any(r[1] == "PASS*" for r in results) else ""))
+    sys.exit(1 if nfail else 0)
+
+
+# ---------------------------------------------------------------- mock
+def mock_dir(n):
+    d = ROOT / "mock-exams" / f"mock-{n}"
+    if not d.exists():
+        die(f"examen blanc inconnu : {n} (1 à 5)")
+    return d
+
+
+def mock_meta(n):
+    text = (mock_dir(n) / "exam.md").read_text(encoding="utf-8")
+    m = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.S)
+    meta = dict(l.split(":", 1) for l in m.group(1).splitlines() if ":" in l)
+    meta = {k.strip(): v.strip() for k, v in meta.items()}
+    return meta, m.group(2).strip()
+
+
+def mock_tasks(n):
+    return [Unit(p.parent, "mock") for p in sorted((mock_dir(n) / "tasks").glob("*/task.md"))]
+
+
+def mock_render(n, tasks, meta, intro):
+    lines = [f"# Examen blanc {n} — {meta.get('title', '')}", "",
+             f"Durée : {meta.get('duration')} min · {len(tasks)} tâches · "
+             f"seuil de réussite 66 % · barème pondéré selon le curriculum", "", intro, ""]
+    total = sum(t.weight for t in tasks)
+    for i, t in enumerate(tasks, 1):
+        name = DOMAINS.get(t.domain, ("?",))[0]
+        lines += [f"## Tâche {i} — {t.weight} % — {t.title}", "",
+                  f"> Contexte : `kubectl config use-context {t.ctx}` · namespace `{t.ns}` · "
+                  f"{name} · temps conseillé {t.time} min", "", t.body, ""]
+    lines += ["", f"(total du barème : {total} %)"]
+    return "\n".join(lines)
+
+
+def cmd_mock(args):
+    if not args:
+        die("usage : mock start|show|time|grade|review|solution|status N")
+    sub = args[0]
+    if sub == "status":
+        cmd_status([])
+        return
+    n = args[1] if len(args) > 1 else die("numéro d'examen manquant (1 à 5)")
+    meta, intro = mock_meta(n)
+    tasks = mock_tasks(n)
+    st = load_state()
+    m = st["mocks"].setdefault(str(n), {"grades": [], "fails": {}})
+    out = OUT_BASE / f"mock-{n}"
+    if sub == "start":
+        print(col("90", f"Préparation de l'examen blanc {n} : {len(tasks)} tâches, clusters remis à zéro…"))
+        for t in tasks:
+            reset_unit(t, quiet=True)
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "EXAM.md").write_text(mock_render(n, tasks, meta, intro), encoding="utf-8")
+        m["started_at"] = time.time()
+        m["duration"] = int(meta.get("duration", "120"))
+        save_state(st)
+        print(bold(f"Examen blanc {n} lancé — {m['duration']} min."))
+        print(f"Sujet : {out / 'EXAM.md'}   (ou : mock show {n})")
+        print(col("90", f"Temps restant : mock time {n}   ·   à la fin : mock grade {n}"))
+        print(col("90", "Conditions d'examen : terminal, vim/nano, kubernetes.io/docs et helm.sh/docs seulement."))
+    elif sub == "show":
+        print((out / "EXAM.md").read_text() if (out / "EXAM.md").exists() else mock_render(n, tasks, meta, intro))
+    elif sub == "time":
+        if not m.get("started_at"):
+            die(f"examen non lancé : mock start {n}")
+        left = m["duration"] * 60 - (time.time() - m["started_at"])
+        print(f"{'Temps restant' if left > 0 else 'Temps écoulé depuis la sonnerie'} : "
+              f"{int(abs(left)) // 60} min {int(abs(left)) % 60:02d} s")
+    elif sub == "grade":
+        results, by_dom = [], {}
+        for i, t in enumerate(tasks, 1):
+            p, tot, sk, o = run_check(t, wait=3, stream=False)
+            scored = tot - sk
+            ok = p == scored
+            (STATE_DIR / "last").mkdir(parents=True, exist_ok=True)
+            (STATE_DIR / "last" / f"{t.id}.txt").write_text(o)
+            gained = t.weight * (p / scored if scored else 1)  # crédit partiel, comme à l'examen
+            results.append((i, t, p, scored, gained, ok))
+            d = by_dom.setdefault(t.domain, [0, 0])
+            d[0] += gained
+            d[1] += t.weight
+            print(f"{col('32', 'PASS') if ok else col('31', 'FAIL')}  tâche {i:>2}  {p}/{scored}  "
+                  f"{gained:5.1f}/{t.weight:<3} {t.title}")
+            if not ok:
+                m["fails"][t.id] = m["fails"].get(t.id, 0) + 1
+        total_w = sum(t.weight for t in tasks)
+        score = round(100 * sum(r[4] for r in results) / total_w, 1)
+        elapsed = int(time.time() - m["started_at"]) if m.get("started_at") else None
+        print()
+        for d, (g, w) in sorted(by_dom.items()):
+            print(f"  {col(DOMAINS[d][3], DOMAINS[d][0]):<60} {100 * g / w:5.1f} %")
+        verdict = col("32", "RÉUSSI") if score >= 66 else col("31", "SOUS LE SEUIL")
+        print(bold(f"\nScore : {score} %  ({verdict}, seuil 66 %)"))
+        if m.get("first_score") is None:
+            m["first_score"] = score
+            m["first_at"] = now().isoformat()
+            m["first_seconds"] = elapsed
+            m["first_by_domain"] = {d: round(100 * g / w, 1) for d, (g, w) in by_dom.items()}
+            print(col("90", "Score à la sonnerie enregistré : il ne changera plus. "
+                            "Maintenant, fais converger chaque tâche (mock review " + str(n) + ")."))
+            for r in results:
+                if r[5]:
+                    unit_state(st, r[1].id)["exam_validated"] = True
+        else:
+            print(col("90", f"(score à la sonnerie : {m['first_score']} %)"))
+        m["grades"].append({"at": now().isoformat(), "score": score})
+        if all(r[5] for r in results):
+            m["converged_at"] = m.get("converged_at") or now().isoformat()
+            print(col("32", "✔ Toutes les tâches sont au vert : examen blanc convergé."))
+        save_state(st)
+    elif sub == "review":
+        for i, t in enumerate(tasks, 1):
+            last = STATE_DIR / "last" / f"{t.id}.txt"
+            txt = last.read_text() if last.exists() else ""
+            if "FAIL" in txt:
+                print(bold(f"\n— Tâche {i} : {t.title}  ({t.ctx}, ns {t.ns})"))
+                print(txt.rstrip())
+                hints = read_hints(t)
+                if hints:
+                    print(col("90", f"  Indice : {hints[0].splitlines()[0]}"))
+                print(col("90", f"  Après correction : mock grade {n}   ·   solution : mock solution {n} {i}"))
+        print(col("90", "\n(review relit le dernier mock grade : relance mock grade après tes corrections)"))
+    elif sub == "solution":
+        if len(args) < 3:
+            die(f"usage : mock solution {n} <numéro de tâche>")
+        t = tasks[int(args[2]) - 1]
+        if m.get("first_score") is None and "--force" not in args:
+            die(f"Note d'abord ton examen : mock grade {n}")
+        if m["fails"].get(t.id, 0) < TRIES_BEFORE_SOLUTION and "--force" not in args:
+            print(col("33", f"Conseil : encore {TRIES_BEFORE_SOLUTION - m['fails'].get(t.id, 0)} essai(s) "
+                            f"avant de regarder (mock solution {n} {args[2]} --force pour forcer)."))
+            return
+        cmd_solution([t.id, "--force"])
+    else:
+        die("sous-commande inconnue")
+
+
+# ---------------------------------------------------------------- aide
+HELP = """ex — exercices du labo CKAD (aucune IA dans le labo)
+
+  ex list [domaine|niveau]   liste des exercices et leur statut
+  ex start <id>              prépare l'exercice et affiche la consigne
+  ex check <id>              vérifie l'état réel du cluster (attendu, trouvé, pourquoi, diagnostic, doc)
+  ex hint <id> [n]           indice 1, 2 puis 3
+  ex solution <id>           réponse de référence (après 3 essais ratés, ou --force)
+  ex reset <id>              remet l'exercice à zéro
+  ex status                  tableau de progression
+  ex next                    prochain exercice conseillé (révisions J+2 / J+7 d'abord)
+  ex scenario [list|<id>]    scénarios du fil conducteur et pannes simulées
+  ex ask <id>                prépare un fichier question à coller dans une IA, hors du labo
+  ex selftest [ids|--all]    (construction/CI) chaque check échoue avant et passe après la solution
+
+mock — examens blancs : mock start N · mock show N · mock time N · mock grade N · mock review N · mock solution N T
+"""
+
+
+def main():
+    prog = Path(sys.argv[0]).name
+    args = sys.argv[1:]
+    if prog == "mock":
+        return cmd_mock(args)
+    if not args or args[0] in ("-h", "--help", "help"):
+        print(HELP)
+        return
+    cmds = {"list": cmd_list, "start": cmd_start, "check": cmd_check, "hint": cmd_hint,
+            "solution": cmd_solution, "reset": cmd_reset, "status": cmd_status, "next": cmd_next,
+            "scenario": cmd_scenario, "ask": cmd_ask, "selftest": cmd_selftest, "mock": cmd_mock}
+    if args[0] not in cmds:
+        die(f"commande inconnue : {args[0]}\n\n{HELP}")
+    cmds[args[0]](args[1:])
+
+
+if __name__ == "__main__":
+    main()

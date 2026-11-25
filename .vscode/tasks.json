@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "lab : créer le cluster ckad-a", "type": "shell", "command": "bin/lab up a", "problemMatcher": [] },
+    { "label": "lab : créer les deux clusters", "type": "shell", "command": "bin/lab up all", "problemMatcher": [] },
+    { "label": "lab : réinitialiser ckad-a", "type": "shell", "command": "bin/lab reset a", "problemMatcher": [] },
+    { "label": "lab : prouver les NetworkPolicy", "type": "shell", "command": "bin/lab netpol-test", "problemMatcher": [] },
+    { "label": "ex : tableau de progression", "type": "shell", "command": "bin/ex status", "problemMatcher": [] },
+    { "label": "ex : selftest complet", "type": "shell", "command": "bin/ex selftest --all -j 3", "problemMatcher": [] },
+    { "label": "doctor : vérifier le labo (aucune IA)", "type": "shell", "command": "bash scripts/doctor.sh", "problemMatcher": [] },
+    { "label": "site : construire et servir le guide (port 8000)", "type": "shell", "command": "bin/site serve", "problemMatcher": [] }
+  ]
+}
