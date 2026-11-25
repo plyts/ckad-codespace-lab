@@ -85,7 +85,7 @@ guide() {
   cap exec "kubectl -n guide exec deploy/front -- nginx -v"
   cap events "kubectl -n guide get events --sort-by=.lastTimestamp | tail -6"
   cap auth-can-i "kubectl auth can-i create deployments -n guide --as=system:serviceaccount:guide:default; kubectl auth can-i --list -n guide --as=system:serviceaccount:guide:default | head -8"
-  cap check-fail "ex start d1-01 >/dev/null && ex check d1-01 | head -14"
+  cap check-fail "ex start d1-01 >/dev/null && ex check d1-01 | sed -n 1,14p"
   cap check-pass "kubectl -n d1-01 run web --image=nginx:1.27-alpine --labels=app=web --port=80 && kubectl -n d1-01 wait --for=condition=Ready pod/web --timeout=90s" "ex check d1-01 | tail -9"
   cap netpol-test "lab netpol-test ckad-a"
   meta guide
