@@ -1,5 +1,5 @@
 $ kubectl -n guide logs deploy/front --tail=3
-Found 3 pods, using pod/front-79f47d45b7-wx8r8
-2026/11/25 20:32:53 [notice] 1#1: start worker process 25
-2026/11/25 20:32:53 [notice] 1#1: start worker process 26
-2026/11/25 20:32:53 [notice] 1#1: start worker process 27
+Found 3 pods, using pod/front-79f47d45b7-w85tq
+2026/11/25 20:56:30 [notice] 1#1: start worker process 38
+2026/11/25 20:56:30 [notice] 1#1: start worker process 39
+2026/11/25 20:56:30 [notice] 1#1: start worker process 40

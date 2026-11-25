@@ -1,1 +1,11 @@
-$ (non capturé : ce cluster n'applique pas les NetworkPolicy — voir lab netpol-test)
+$ kubectl -n journal get netpol trop-stricte -o yaml | yq .spec
+podSelector: {}
+policyTypes:
+  - Egress
+
+$ kubectl -n journal run t2 --image=busybox:1.37 --restart=Never -- wget -qO- -T 3 http://web && kubectl -n journal wait --for=jsonpath='{.status.phase}'=Failed pod/t2 --timeout=60s
+pod/t2 created
+pod/t2 condition met
+
+$ kubectl -n journal logs t2
+wget: bad address 'web'

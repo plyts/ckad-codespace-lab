@@ -6,7 +6,7 @@ $ kubectl -n guide logs dns-test
 Server:		10.96.0.10
 Address:	10.96.0.10:53
 
-
 Name:	api.guide.svc.cluster.local
-Address: 10.96.19.47
+Address: 10.96.37.178
+
 

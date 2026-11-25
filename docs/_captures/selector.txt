@@ -1,6 +1,6 @@
 $ kubectl -n guide get pods -l 'app in (api,front)' -L tier
 NAME                     READY   STATUS    RESTARTS   AGE   TIER
-api-5555b5df-4nxbv       1/1     Running   0          <âge>    backend
-api-5555b5df-gtwrp       1/1     Running   0          <âge>    backend
-front-79f47d45b7-jrggr   1/1     Running   0          <âge>    web
-front-79f47d45b7-sjdv5   1/1     Running   0          <âge>    web
+api-5555b5df-598h9       1/1     Running   0          <âge>    backend
+api-5555b5df-9kv89       1/1     Running   0          <âge>    backend
+front-79f47d45b7-q45ww   1/1     Running   0          <âge>    web
+front-79f47d45b7-zzcsv   1/1     Running   0          <âge>    web

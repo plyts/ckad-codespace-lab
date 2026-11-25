@@ -1,4 +1,4 @@
-$ cd /home/user/ckad-codespace-lab && bin/lab status
+$ lab status
 Versions : kind v0.33.0, kubectl v1.37.0, nœud v1.37.0
 Clusters : ckad-a ckad-b 
 Contexte courant : ckad-a

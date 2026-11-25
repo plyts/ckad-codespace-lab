@@ -1,4 +1,4 @@
 $ kubectl -n journal describe pod cfgerr | grep -E 'Reason|Error|couldn|not found' | head -5
       Reason:       CreateContainerConfigError
-  Type     Reason     Age                   From               Message
+  Type     Reason     Age                  From               Message
   Warning  Failed     <âge> (xN sur <durée>)  kubelet            spec.containers{cfgerr}: Error: couldn't find key DB_HOST in ConfigMap journal/app-cfg

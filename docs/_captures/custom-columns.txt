@@ -1,7 +1,7 @@
 $ kubectl -n guide get pods -o custom-columns=POD:.metadata.name,IMAGE:.spec.containers[0].image,NODE:.spec.nodeName | sed -E 's/-[a-z0-9]{8,10}-[a-z0-9]{5}/-<hash>/'
 POD                      IMAGE                       NODE
-api-<hash>       hashicorp/http-echo:1.0.0   ckad-a-worker
 api-<hash>       hashicorp/http-echo:1.0.0   ckad-a-worker2
+api-<hash>       hashicorp/http-echo:1.0.0   ckad-a-worker
 front-<hash>   nginx:1.27-alpine           ckad-a-worker
 front-<hash>   nginx:1.27-alpine           ckad-a-worker2
-redis-<hash>   redis:7.4-alpine            ckad-a-worker
+redis-<hash>   redis:7.4-alpine            ckad-a-worker2

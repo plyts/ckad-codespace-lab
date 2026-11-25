@@ -1,5 +1,5 @@
 $ kubectl -n journal get endpointslices -l kubernetes.io/service-name=web-mauvais; kubectl -n journal describe svc web-mauvais | grep -E 'Selector|Endpoints'
 NAME                ADDRESSTYPE   PORTS     ENDPOINTS   AGE
-web-mauvais-cgptv   IPv4          <unset>   <unset>     <âge>
+web-mauvais-jzbln   IPv4          <unset>   <unset>     <âge>
 Selector:                 app=web-mauvais
 Endpoints:                

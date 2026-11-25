@@ -1,2 +1,2 @@
-$ cd /home/user/ckad-codespace-lab && bin/lab netpol-test ckad-a
-FAIL [ckad-a] NetworkPolicy NON appliquées (avant=2 après=2) : les contrôles réseau passeront en SKIP
+$ lab netpol-test ckad-a
+PASS [ckad-a] NetworkPolicy appliquées : trafic OK avant deny-all, coupé après

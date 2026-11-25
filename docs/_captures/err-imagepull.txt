@@ -1,7 +1,7 @@
 $ kubectl -n journal describe pod pull | sed -n '/^Events:/,$p' | tail -6
-  Normal   Scheduled  <âge>                default-scheduler  Successfully assigned journal/pull to ckad-a-worker
+  Normal   Scheduled  <âge>                default-scheduler  Successfully assigned journal/pull to ckad-a-worker2
   Normal   Pulling    <âge> (xN sur <durée>)  kubelet            spec.containers{pull}: Pulling image "nginx:1.99-nexistepas"
-  Warning  Failed     <âge> (xN sur <durée>)  kubelet            spec.containers{pull}: Failed to pull image "nginx:1.99-nexistepas": failed to pull and unpack image "docker.io/library/nginx:1.99-nexistepas": failed to resolve reference "docker.io/library/nginx:1.99-nexistepas": failed to do request: Head "https://registry-1.docker.io/v2/library/nginx/manifests/1.99-nexistepas": proxyconnect tcp: dial tcp 127.0.0.1:42679: connect: connection refused
+  Warning  Failed     <âge> (xN sur <durée>)  kubelet            spec.containers{pull}: Failed to pull image "nginx:1.99-nexistepas": rpc error: code = NotFound desc = failed to pull and unpack image "docker.io/library/nginx:1.99-nexistepas": failed to resolve reference "docker.io/library/nginx:1.99-nexistepas": docker.io/library/nginx:1.99-nexistepas: not found
   Warning  Failed     <âge> (xN sur <durée>)  kubelet            spec.containers{pull}: Error: ErrImagePull
   Normal   BackOff    <âge> (xN sur <durée>)  kubelet            spec.containers{pull}: Back-off pulling image "nginx:1.99-nexistepas"
   Warning  Failed     <âge> (xN sur <durée>)  kubelet            spec.containers{pull}: Error: ImagePullBackOff
