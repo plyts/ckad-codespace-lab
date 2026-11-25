@@ -11,6 +11,10 @@ d'avance dans le dépôt.
 - Le fil conducteur et des pannes simulées (`ex scenario`), **5 examens blancs** notés par scripts (`mock`)
 - Un guide HTML (notions, scénarios, examens corrigés, commandes), sur le port 8000 ou GitHub Pages
 
+> **Mode d'emploi complet** (Codespaces, examens blancs, GitHub Pages, quotas, dépannage,
+> maintenance) : [MODE-EMPLOI.md](MODE-EMPLOI.md). Guide en ligne :
+> <https://plyts.github.io/ckad-codespace-lab/>
+
 ## Démarrer
 
 1. **Code → Codespaces → `…` → New with options**, puis choisis la configuration :

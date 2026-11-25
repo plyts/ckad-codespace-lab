@@ -5,3 +5,6 @@ k create deployment web --image=nginx:1.27-alpine
 k expose deploy web --port=80
 kubectl --context "$CTX" -n d5-07-db create deployment db --image=nginx:1.27-alpine
 kubectl --context "$CTX" -n d5-07-db expose deploy db --port=80
+# web doit répondre : sinon « bloqué » serait vrai sans NetworkPolicy
+k rollout status deploy/web --timeout=180s
+kubectl --context "$CTX" -n d5-07-db rollout status deploy/db --timeout=180s

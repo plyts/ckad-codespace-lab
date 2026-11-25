@@ -17,4 +17,4 @@ skill: fil-conducteur
 4. NetworkPolicy `ingress-to-front` : le namespace `traefik` peut joindre `app=front` (port 80).
 5. Ingress `boutique` (classe `traefik`), hôte `boutique.lab.local`, `/` vers `front:80`.
 
-Le front ne doit **pas** pouvoir joindre Redis directement.
+Le front ne doit **pas** pouvoir joindre Redis directement ; l'API, si.

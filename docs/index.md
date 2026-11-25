@@ -9,6 +9,9 @@ sortie de terminal est une capture réelle (`scripts/capture-docs.sh`), chaque e
 par `ex selftest`, et les faits d'examen viennent des pages officielles citées dans
 [versions.md](https://github.com/plyts/ckad-codespace-lab/blob/main/versions.md).
 
+Nouveau ? Commence par le [mode d'emploi](mode-emploi.html) : ouvrir ton Codespace, ta
+première séance, les examens blancs, le guide en ligne et le dépannage.
+
 ## L'examen en bref
 
 | | |

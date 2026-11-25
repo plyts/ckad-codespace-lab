@@ -33,6 +33,7 @@ CALLOUTS = {"piege": "Piège vérifié", "pourquoi": "Pourquoi", "verif": "Véri
 # Ordre de navigation : (fichier, titre court, couleur)
 NAV = [
     ("index", "Accueil", "gris"),
+    ("mode-emploi", "Mode d'emploi", "gris"),
     ("installation", "0 · Le labo", "gris"),
     ("fondamentaux", "Fondamentaux", "gris"),
     ("d1-design-build", "1 · Design and Build", "bleu"),
@@ -191,12 +192,14 @@ def build():
     generated = {"exercices": gen_exercices(), "examens-blancs": gen_mocks()}
     built = 0
     for name, short, color in NAV:
-        src = DOCS / f"{name}.md"
+        src = ROOT / "MODE-EMPLOI.md" if name == "mode-emploi" else DOCS / f"{name}.md"
         text = generated.get(name) or (src.read_text(encoding="utf-8") if src.exists() else None)
         if text is None:
             print(f"  (absent) {name}.md")
             continue
         meta, body = front(text)
+        if name == "mode-emploi":
+            meta = {"title": "Mode d'emploi", "color": "gris"}
         body = body.replace("{{scenarios}}", gen_scenarios())
         md = markdown.Markdown(extensions=["fenced_code", "tables", "toc", "attr_list", "md_in_html", "sane_lists"],
                                extension_configs={"toc": {"permalink": "#", "toc_depth": "2-3"}})

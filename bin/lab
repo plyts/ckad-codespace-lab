@@ -187,6 +187,24 @@ EOF
   fi
 }
 
+# Après un arrêt de Docker (veille du Codespace) : relancer les nœuds, puis CoreDNS et Traefik.
+# Constaté pendant la construction : sans cela, le DNS du cluster reste cassé (« bad address »).
+wake() {
+  local c n
+  for c in $(kind get clusters 2>/dev/null); do
+    for n in $(kind get nodes --name "$c" 2>/dev/null); do docker start "$n" >/dev/null 2>&1 || true; done
+  done
+  for c in $(kind get clusters 2>/dev/null); do
+    say "[$c] réveil"
+    for n in $(seq 1 60); do kubectl --context "$c" get nodes >/dev/null 2>&1 && break; sleep 3; done
+    kubectl --context "$c" wait --for=condition=Ready node --all --timeout=180s >/dev/null 2>&1 || warn "[$c] nœuds pas encore prêts"
+    kubectl --context "$c" -n kube-system rollout restart deploy/coredns >/dev/null 2>&1
+    kubectl --context "$c" -n traefik rollout restart deploy/traefik >/dev/null 2>&1
+    kubectl --context "$c" -n kube-system rollout status deploy/coredns --timeout=180s >/dev/null 2>&1 \
+      && ok "[$c] CoreDNS prêt" || warn "[$c] CoreDNS pas encore prêt (relance : lab wake)"
+  done
+}
+
 status() {
   echo "${c_bold}Versions${c_off} : kind $(kind version 2>/dev/null | awk '{print $2}'), kubectl $(kubectl version --client -o json 2>/dev/null | sed -n 's/.*"gitVersion": "\(v[^"]*\)".*/\1/p' | head -1), nœud $K8S_VERSION"
   echo "${c_bold}Clusters${c_off} : $(kind get clusters 2>/dev/null | tr '\n' ' ')"
@@ -226,6 +244,7 @@ lab — clusters kind du labo CKAD ($K8S_VERSION)
   lab netpol-test [ctx] prouve que les NetworkPolicy coupent réellement le trafic
   lab images [a|b|all]  recharge les images des exercices dans les nœuds
   lab ssh ckad-a        shell limité à un cluster, comme "ssh <hôte>" à l'examen
+  lab wake              après une mise en veille : relance nœuds, CoreDNS et Traefik
 EOF
 }
 
@@ -238,6 +257,7 @@ case "$cmd" in
   netpol-test) netpol_test "${1:-ckad-a}" ;;
   images) for c in $(clusters_for "${1:-a}"); do load_images "$c"; done ;;
   ssh)    lab_ssh "${1:-}" ;;
+  wake)   wake ;;
   help|-h|--help) usage ;;
   *) usage; exit 2 ;;
 esac
