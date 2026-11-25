@@ -26,7 +26,7 @@ OUT="${OUT:-$HOME/ckad/unknown}"
 _ck_n=0; _ck_pass=0; _ck_skip=0
 # Capacités mesurées par "lab up" / "lab netpol-test" (fichier .progress/caps).
 CAPS_FILE="${CAPS_FILE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.progress/caps}"
-cap() { grep -qx "$1=1" "$CAPS_FILE" 2>/dev/null; }
+cap() { grep -qx "$1@$CTX=1" "$CAPS_FILE" 2>/dev/null; }   # capacité mesurée sur CE cluster
 
 if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
   _g=$'\e[32m'; _r=$'\e[31m'; _y=$'\e[33m'; _d=$'\e[90m'; _b=$'\e[1m'; _o=$'\e[0m'

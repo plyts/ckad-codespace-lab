@@ -1,0 +1,16 @@
+# Préparation de d3-04 (CTX, NS, OUT fournis par le lanceur)
+k(){ kubectl --context "$CTX" -n "$NS" "$@"; }
+
+k apply -f - <<'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: worker}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: worker}}
+  template:
+    metadata: {labels: {app: worker}}
+    spec:
+      containers:
+      - {name: worker, image: "busybox:1.37", command: ["sh", "-c", "echo démarrage; slep 3600"]}
+EOF

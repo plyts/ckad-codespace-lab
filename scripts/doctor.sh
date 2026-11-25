@@ -75,11 +75,11 @@ for c in ckad-a ckad-b; do
     [[ $c == ckad-a ]] && fail "$c absent : lab up a" || warn "$c absent (lab up b pour s'entraîner au changement de contexte)"
   fi
 done
-if [[ -f .progress/caps ]]; then
-  grep -qx netpol=1 .progress/caps && pass "NetworkPolicy réellement appliquées (lab netpol-test)" \
-    || warn "NetworkPolicy non appliquées sur ce cluster : contrôles réseau en SKIP (lab netpol-test)"
-  grep -qx metrics=1 .progress/caps && pass "metrics-server installé (kubectl top)" || warn "metrics-server absent (kubectl top)"
-else warn "capacités non mesurées : lab netpol-test"; fi
+for c in $(kind get clusters 2>/dev/null); do
+  grep -qx "netpol@$c=1" .progress/caps 2>/dev/null && pass "[$c] NetworkPolicy réellement appliquées (lab netpol-test $c)" \
+    || warn "[$c] NetworkPolicy non prouvées : contrôles de trafic en SKIP (lab netpol-test $c)"
+  grep -qx "metrics@$c=1" .progress/caps 2>/dev/null && pass "[$c] metrics-server installé (kubectl top)" || warn "[$c] metrics-server absent (kubectl top)"
+done
 
 echo "== Réponses cachées"
 n_ex=$(find exercises scenarios mock-exams -name task.md 2>/dev/null | wc -l)
