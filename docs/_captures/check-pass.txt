@@ -1,0 +1,10 @@
+$ cd /home/user/ckad-codespace-lab && kubectl -n d1-01 run web --image=nginx:1.27-alpine --labels=app=web --port=80 >/dev/null && kubectl -n d1-01 wait --for=condition=Ready pod/web --timeout=90s >/dev/null && NO_COLOR=1 bin/ex check d1-01 | tail -9
+
+PASS  1. Le Pod web existe
+PASS  2. Image nginx:1.27-alpine
+PASS  3. Label app=web
+PASS  4. Port de conteneur 80 déclaré
+PASS  5. Le Pod est prêt
+
+✔ Tout est au vert en 0 min 13 s. Exercice convergé.
+   Note ce que tu retiens : notes/d1-01.md

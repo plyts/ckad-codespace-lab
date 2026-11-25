@@ -1,0 +1,4 @@
+$ kubectl -n guide scale deploy api --replicas=3 && kubectl -n guide rollout status deploy/api --timeout=120s
+deployment.apps/api scaled
+Waiting for deployment "api" rollout to finish: 2 of 3 updated replicas are available...
+deployment "api" successfully rolled out

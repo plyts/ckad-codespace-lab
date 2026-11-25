@@ -1,0 +1,15 @@
+$ cd /home/user/ckad-codespace-lab && bin/ex start d1-01 >/dev/null && NO_COLOR=1 bin/ex check d1-01 | head -14
+███ d1-01 — Premier Pod nginx
+    domaine 1 · Application Design and Build (20 %) · niveau debutant · 3 min indicatives
+    Contexte : kubectl config use-context ckad-a    Namespace : d1-01
+    Doc : https://kubernetes.io/docs/concepts/workloads/pods/
+
+FAIL  1. Le Pod web existe
+      attendu    : web
+      trouvé     : <rien>
+      pourquoi   : La consigne demande un Pod nommé exactement web, dans le namespace d1-01.
+      diagnostic : kubectl -n d1-01 get pods
+      doc        : https://kubernetes.io/docs/concepts/workloads/pods/
+FAIL  2. Image nginx:1.27-alpine
+      attendu    : nginx:1.27-alpine
+      trouvé     : <rien>

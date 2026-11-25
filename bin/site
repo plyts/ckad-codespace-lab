@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# site : construit le guide HTML (docs/ → site/) et le sert sur le port 8000.
+#   site build      construit site/
+#   site serve [p]  construit puis sert sur http://localhost:${p:-8000}
+#   site capture    rejoue les commandes du guide et du journal sur ckad-a (sorties réelles)
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+case "${1:-build}" in
+  build)   python3 "$ROOT/scripts/build_site.py" ;;
+  serve)   python3 "$ROOT/scripts/build_site.py"
+           echo "Guide : http://localhost:${2:-8000}  (Codespaces : onglet Ports, port ${2:-8000})"
+           exec python3 -m http.server "${2:-8000}" --directory "$ROOT/site" ;;
+  capture) bash "$ROOT/scripts/capture-docs.sh" all ;;
+  *) echo "usage : site build|serve [port]|capture"; exit 2 ;;
+esac

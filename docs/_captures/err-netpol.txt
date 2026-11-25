@@ -1,0 +1,1 @@
+$ (non capturé : ce cluster n'applique pas les NetworkPolicy — voir lab netpol-test)

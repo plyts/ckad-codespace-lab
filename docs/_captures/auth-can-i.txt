@@ -1,0 +1,10 @@
+$ kubectl auth can-i create deployments -n guide --as=system:serviceaccount:guide:default; kubectl auth can-i --list -n guide --as=system:serviceaccount:guide:default | head -8
+no
+Resources                                       Non-Resource URLs                      Resource Names   Verbs
+selfsubjectreviews.authentication.k8s.io        []                                     []               [create]
+selfsubjectaccessreviews.authorization.k8s.io   []                                     []               [create]
+selfsubjectrulesreviews.authorization.k8s.io    []                                     []               [create]
+clustertrustbundles.certificates.k8s.io         []                                     []               [get list watch]
+                                                [/.well-known/openid-configuration/]   []               [get]
+                                                [/.well-known/openid-configuration]    []               [get]
+                                                [/api/*]                               []               [get]

@@ -1,0 +1,7 @@
+$ kubectl -n guide get pods --show-labels
+NAME                     READY   STATUS    RESTARTS   AGE   LABELS
+api-5555b5df-4nxbv       1/1     Running   0          <âge>    app=api,pod-template-hash=5555b5df,tier=backend
+api-5555b5df-gtwrp       1/1     Running   0          <âge>    app=api,pod-template-hash=5555b5df,tier=backend
+front-79f47d45b7-jrggr   1/1     Running   0          <âge>    app=front,pod-template-hash=79f47d45b7,tier=web
+front-79f47d45b7-sjdv5   1/1     Running   0          <âge>    app=front,pod-template-hash=79f47d45b7,tier=web
+redis-678c7bcf6b-bppx8   1/1     Running   0          <âge>    app=redis,pod-template-hash=678c7bcf6b,tier=data

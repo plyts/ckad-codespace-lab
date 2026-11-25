@@ -64,6 +64,7 @@ chk kubectl "kubectl version --client" "$KUBECTL_VERSION"
 chk helm "helm version --short" "$HELM_VERSION"
 chk yq "yq --version" "$YQ_VERSION"
 command -v python3 >/dev/null && pass "python3 $(python3 -V 2>&1 | cut -d' ' -f2)" || fail "python3 absent"
+python3 -c 'import markdown' 2>/dev/null && pass "module markdown (guide HTML)" || warn "module markdown absent : pip install -r docs/requirements.txt (pour site build)"
 
 echo "== Clusters"
 if docker info >/dev/null 2>&1; then pass "Docker joignable"; else fail "Docker injoignable"; fi

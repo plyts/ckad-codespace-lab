@@ -1,0 +1,7 @@
+$ kubectl -n guide get events --sort-by=.lastTimestamp | tail -6
+<âge>          Normal   Started             pod/front-79f47d45b7-g4vbx    Container started
+<âge>          Normal   ScalingReplicaSet   deployment/api                Scaled up replica set api-5555b5df from 2 to 3
+<âge>          Normal   SuccessfulCreate    replicaset/api-5555b5df       Created pod: api-5555b5df-944lj
+<âge>          Normal   Started             pod/api-5555b5df-944lj        Container started
+<âge>          Normal   Created             pod/api-5555b5df-944lj        Container created
+<âge>          Normal   Pulled              pod/api-5555b5df-944lj        Container image "hashicorp/http-echo:1.0.0" already present on machine and can be accessed by the pod

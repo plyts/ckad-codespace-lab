@@ -1,0 +1,2 @@
+$ kubectl -n journal get secrets --as=system:serviceaccount:journal:default
+Error from server (Forbidden): secrets is forbidden: User "system:serviceaccount:journal:default" cannot list resource "secrets" in API group "" in the namespace "journal"

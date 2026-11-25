@@ -1,0 +1,4 @@
+$ kubectl config get-contexts
+CURRENT   NAME     CLUSTER       AUTHINFO      NAMESPACE
+*         ckad-a   kind-ckad-a   kind-ckad-a   
+          ckad-b   kind-ckad-b   kind-ckad-b   

@@ -1,0 +1,9 @@
+$ kubectl -n journal get pods
+NAME                  READY   STATUS                       RESTARTS       AGE
+cfgerr                0/1     CreateContainerConfigError   0              <âge>
+crash                 0/1     CrashLoopBackOff             4 (il y a <durée>)    <âge>
+mount                 0/1     ContainerCreating            0              <âge>
+oom                   0/1     OOMKilled                    4 (il y a <durée>)   <âge>
+pending               0/1     Pending                      0              <âge>
+pull                  0/1     ImagePullBackOff             0              <âge>
+web-7c6cdd646-xk9h7   1/1     Running                      0              <âge>

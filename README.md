@@ -96,15 +96,29 @@ scripts/         doctor.sh
 notes/           tes notes (notes/<id>.md, ignorées par git)
 ```
 
-## Ce qui n'a pas été exécuté pendant la construction
+## Le guide HTML
 
-Le conteneur de construction n'était pas un Codespace. Tout le reste a été exécuté sur un vrai
-cluster kind v1.37 ; ces points ne l'ont pas été :
+```bash
+site serve
+```
 
-- **NON TESTÉ dans Codespaces** : la création des Codespaces `lab` et `exam` elles-mêmes
-  (features devcontainer, bureau noVNC, Firefox). Les scripts qu'elles lancent l'ont été.
-- **Trafic NetworkPolicy** : le noyau du conteneur de construction ne prenait pas en charge les
-  règles nftables de kindnet. Les contrôles de trafic bloqué sont donc passés en SKIP au selftest
-  local ; GitHub Actions les exécute réellement.
-- **metrics-server / `kubectl top`** : registre d'images inaccessible depuis le conteneur de
-  construction, exercice `d3-08` en SKIP localement ; vérifié par GitHub Actions.
+Le guide est construit depuis `docs/` et sert sur le port 8000 (onglet **Ports** du Codespace).
+Toutes ses sorties de terminal sont des captures réelles, que `site capture` rejoue sur
+`ckad-a`. Pour le publier sur GitHub Pages : **Settings → Pages → Source : GitHub Actions**, puis
+un push sur `main`. Le workflow [guide](.github/workflows/guide.yml) recrée les clusters, rejoue
+les captures et déploie le site. Pages est gratuit pour un dépôt public ; un dépôt privé demande
+GitHub Pro.
+
+## Ce qui a été exécuté, où
+
+| Vérification | Conteneur de construction | GitHub Actions (ubuntu-24.04) |
+|---|---|---|
+| 45 exercices, 6 scénarios, 60 tâches d'examen : échec avant, succès après la solution | oui | oui, à chaque push et pull request |
+| Trafic bloqué par NetworkPolicy | non (SKIP : le noyau ne gérait pas les règles nftables de kindnet) | **oui** (`netpol@ckad-a=1`, `netpol@ckad-b=1`) |
+| metrics-server / `kubectl top` (d3-08) | non (SKIP : registre d'images inaccessible) | **oui** |
+| Captures du guide et du journal des erreurs | oui | oui ; ce sont les captures du runner qui sont commitées |
+
+**NON TESTÉ** : la création des Codespaces `lab` et `exam` elles-mêmes (features devcontainer,
+bureau noVNC, Firefox), faute de Codespace pendant la construction. Les scripts qu'elles lancent
+(`install-tools.sh`, `shell-setup.sh`, `lab up`, `doctor.sh`) ont été exécutés. Au premier
+lancement, si quelque chose casse, `bash scripts/doctor.sh` dit quoi.

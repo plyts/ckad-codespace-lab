@@ -1,0 +1,14 @@
+$ kubectl -n journal get pod crash
+NAME    READY   STATUS             RESTARTS      AGE
+crash   0/1     CrashLoopBackOff   4 (il y a <durée>)   <âge>
+
+$ kubectl -n journal describe pod crash | sed -n '/^Containers:/,/^Conditions:/p' | grep -E 'State|Reason|Exit Code|Restart Count'
+    State:          Waiting
+      Reason:       CrashLoopBackOff
+    Last State:     Terminated
+      Reason:       Error
+      Exit Code:    1
+    Restart Count:  4
+
+$ kubectl -n journal logs crash
+démarrage

@@ -1,0 +1,66 @@
+# Guide HTML : rejoue toutes les captures sur de vrais clusters kind v1.37, construit site/,
+# puis le publie sur GitHub Pages depuis main (Settings → Pages → Source : GitHub Actions).
+name: guide
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths: ["docs/**", "scripts/capture-docs.sh", "scripts/build_site.py", "app/**", "bin/**", "lib/**", "exercises/**", "mock-exams/**", "scenarios/**", ".github/workflows/guide.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: guide-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dépendances du guide
+        run: pip install -r docs/requirements.txt
+      - name: Outils aux versions de versions.env
+        run: bash .devcontainer/install-tools.sh
+      - name: Clusters ckad-a et ckad-b
+        run: bin/lab up all
+      - name: Captures réelles (guide et journal des erreurs)
+        run: bin/site capture
+      - name: Construction du site
+        run: bin/site build
+      - name: Captures produites (à commiter dans docs/_captures si elles ont changé)
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures
+          path: docs/_captures
+      - name: Site (aperçu téléchargeable)
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: site
+      - name: Artefact GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-24.04
+    # Échoue sans bloquer tant que Pages n'est pas activé dans les réglages du dépôt.
+    continue-on-error: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

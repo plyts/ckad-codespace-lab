@@ -1,0 +1,18 @@
+$ kubectl -n guide run web --image=nginx:1.27-alpine --labels=app=web --port=80 --dry-run=client -o yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: web
+  name: web
+  namespace: guide
+spec:
+  containers:
+  - image: nginx:1.27-alpine
+    name: web
+    ports:
+    - containerPort: 80
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}

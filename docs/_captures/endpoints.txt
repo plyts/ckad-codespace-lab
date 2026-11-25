@@ -1,0 +1,5 @@
+$ kubectl -n guide get endpointslices -o wide
+NAME          ADDRESSTYPE   PORTS   ENDPOINTS                 AGE
+api-57b4g     IPv4          5678    10.244.3.66,10.244.1.84   <âge>
+front-5bnd5   IPv4          80      10.244.3.67,10.244.1.85   <âge>
+redis-tbbsk   IPv4          6379    10.244.1.83               <âge>

@@ -1,0 +1,10 @@
+$ kubectl -n journal get endpointslices -l kubernetes.io/service-name=web-port
+NAME             ADDRESSTYPE   PORTS   ENDPOINTS     AGE
+web-port-7cb95   IPv4          8080    10.244.1.92   <âge>
+
+$ kubectl -n journal run t --image=busybox:1.37 --restart=Never -- wget -qO- -T 3 http://web-port && kubectl -n journal wait --for=jsonpath='{.status.phase}'=Failed pod/t --timeout=60s
+pod/t created
+pod/t condition met
+
+$ kubectl -n journal logs t
+wget: can't connect to remote host (10.96.17.23): Connection refused
