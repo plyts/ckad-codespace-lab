@@ -24,3 +24,5 @@ spec:
               retention: {type: integer, minimum: 1}
 EOF
 kubectl --context "$CTX" wait --for=condition=Established crd/backups.lab.ckad.io --timeout=30s
+# Established ne suffit pas : le schéma OpenAPI (kubectl explain) est publié quelques secondes après.
+for i in $(seq 1 60); do kubectl --context "$CTX" explain backup.spec >/dev/null 2>&1 && break; sleep 1; done

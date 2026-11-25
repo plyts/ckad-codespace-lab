@@ -1,6 +1,6 @@
 ## Indice 1
 
-`kubectl -n d4-03 create serviceaccount deployer`
+Le ServiceAccount se crée en une commande impérative (`kubectl create serviceaccount --help`) ; le Pod demande un YAML.
 
 ## Indice 2
 

@@ -1,10 +1,10 @@
 ## Indice 1
 
-`kubectl create role pod-reader --verb=get,list,watch --resource=pods,pods/log -n d4-07`
+Deux objets : un Role (les droits) et un RoleBinding (qui les reçoit). Les logs sont la sous-ressource `pods/log`.
 
 ## Indice 2
 
-`kubectl create rolebinding --help` : option `--serviceaccount=<ns>:<nom>`.
+`kubectl create role --help` (`--verb`, `--resource`) et `kubectl create rolebinding --help` (`--serviceaccount=<ns>:<nom>`).
 
 ## Indice 3
 
