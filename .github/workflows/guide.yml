@@ -34,6 +34,12 @@ jobs:
         run: bin/lab up all
       - name: Captures réelles (guide et journal des erreurs)
         run: bin/site capture
+      - name: Captures dans le journal du job (archive base64, pour les recopier sans artefact)
+        run: |
+          echo "CAPTURES-BEGIN"
+          tar -czf - docs/_captures | base64 -w0
+          echo
+          echo "CAPTURES-END"
       - name: Construction du site
         run: bin/site build
       - name: Captures produites (à commiter dans docs/_captures si elles ont changé)
