@@ -21,3 +21,5 @@ spec:
               window: {type: string}
 EOF
 kubectl --context "$CTX" wait --for=condition=Established crd/maintenances.ops.m3.lab --timeout=30s
+# Established ne suffit pas : le schéma OpenAPI (kubectl explain) est publié quelques secondes après.
+for i in $(seq 1 60); do kubectl --context "$CTX" explain maintenance.spec >/dev/null 2>&1 && break; sleep 1; done

@@ -21,3 +21,5 @@ spec:
               source: {type: string}
 EOF
 kubectl --context "$CTX" wait --for=condition=Established crd/pipelines.data.m5.lab --timeout=30s
+# Established ne suffit pas : le schéma OpenAPI (kubectl explain) est publié quelques secondes après.
+for i in $(seq 1 60); do kubectl --context "$CTX" explain pipeline.spec >/dev/null 2>&1 && break; sleep 1; done
