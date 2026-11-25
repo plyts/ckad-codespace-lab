@@ -125,8 +125,9 @@ def caps():
 
 
 def missing_caps(u):
+    """Capacités requises par l'unité et non mesurées sur SON cluster (clé@cluster dans .progress/caps)."""
     c = caps()
-    return [r for r in u.requires if not c.get(r.replace("metrics-server", "metrics"), False)]
+    return [r for r in u.requires if not c.get(r.replace("metrics-server", "metrics") + "@" + u.ctx, False)]
 
 
 # ---------------------------------------------------------------- état

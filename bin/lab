@@ -23,7 +23,7 @@ clusters_for() {
   esac
 }
 
-# Capacités réellement mesurées, lues par lib/check.sh (jamais supposées).
+# Capacités réellement mesurées, PAR CLUSTER (clé@cluster), lues par lib/check.sh (jamais supposées).
 CAPS="$ROOT/.progress/caps"
 set_cap() { mkdir -p "$ROOT/.progress"; touch "$CAPS"; sed -i "/^$1=/d" "$CAPS"; echo "$1=$2" >> "$CAPS"; }
 
@@ -89,9 +89,9 @@ install_addons() {
   # metrics.k8s.io cassée, qui bloque ensuite la suppression des namespaces (Terminating).
   if ensure_image "$METRICS_SERVER_IMAGE" && node_load "$cluster" "$METRICS_SERVER_IMAGE"; then
     kubectl --context "$ctx" apply -f "$ROOT/infra/metrics-server-v0.8.0.yaml" >/dev/null
-    set_cap metrics 1
+    set_cap "metrics@$cluster" 1
   else
-    set_cap metrics 0
+    set_cap "metrics@$cluster" 0
     warn "image metrics-server inaccessible : non installé (kubectl top indisponible, exercices metrics-server en SKIP)"
   fi
   kubectl --context "$ctx" -n traefik rollout status deploy/traefik --timeout=180s >/dev/null \
@@ -108,7 +108,9 @@ create_cluster() {
   # Codespaces (cgroup v2, conteneur privilégié) n'en a normalement besoin d'aucun.
   local need_cg=0 need_oom=0
   [[ "$(stat -fc %T /sys/fs/cgroup 2>/dev/null)" == "cgroup2fs" ]] || need_cg=1
-  sh -c 'echo -500 > /proc/self/oom_score_adj' 2>/dev/null || need_oom=1
+  # Testé DANS un conteneur privilégié, comme un nœud kind (l'utilisateur courant n'est pas root).
+  ensure_image busybox:1.37 || true
+  docker run --rm --privileged busybox:1.37 sh -c 'echo -500 > /proc/self/oom_score_adj' >/dev/null 2>&1 || need_oom=1
   if (( need_cg || need_oom )); then
     cfg="$(mktemp --suffix=.yaml)"; cp "$ROOT/kind/$cluster.yaml" "$cfg"
     if (( need_cg )); then
@@ -149,8 +151,18 @@ netpol_test() {
   $k -n "$ns" expose pod web --port=80 >/dev/null
   $k -n "$ns" run client --image=busybox:1.37 --labels=app=client -- sleep 3600 >/dev/null
   $k -n "$ns" wait --for=condition=Ready pod/web pod/client --timeout=120s >/dev/null
-  local before after
-  before=$($k -n "$ns" exec client -- wget -qO- -T 3 http://web 2>&1 | grep -c "Welcome to nginx" || true)
+  local before=0 after i
+  # Référence : le trafic doit d'abord PASSER (le Service vient d'être créé : on réessaie).
+  for i in $(seq 1 15); do
+    before=$($k -n "$ns" exec client -- wget -qO- -T 3 http://web 2>&1 | grep -c "Welcome to nginx" || true)
+    [[ "${before:-0}" -ge 1 ]] && break
+    sleep 2
+  done
+  if [[ "${before:-0}" -lt 1 ]]; then
+    $k delete ns "$ns" --wait=false >/dev/null
+    fail "[$ctx] test non concluant : le trafic ne passe pas même sans NetworkPolicy"
+    set_cap "netpol@$ctx" 0; return 1
+  fi
   $k -n "$ns" apply -f - >/dev/null <<'EOF'
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -160,20 +172,18 @@ spec:
   podSelector: {}
   policyTypes: [Ingress, Egress]
 EOF
-  local i
   for i in 1 2 3 4 5; do
     after=$($k -n "$ns" exec client -- wget -qO- -T 3 http://web 2>&1 | grep -c "Welcome to nginx" || true)
     [[ "$after" == "0" ]] && break
     sleep 2
   done
   $k delete ns "$ns" --wait=false >/dev/null
-  local before_n="$before"; before="${before_n:-0}"
   if [[ "$before" -ge 1 && "$after" == "0" ]]; then
     ok "[$ctx] NetworkPolicy appliquées : trafic OK avant deny-all, coupé après"
-    set_cap netpol 1
+    set_cap "netpol@$ctx" 1
   else
     fail "[$ctx] NetworkPolicy NON appliquées (avant=$before après=$after) : les contrôles réseau passeront en SKIP"
-    set_cap netpol 0; return 1
+    set_cap "netpol@$ctx" 0; return 1
   fi
 }
 

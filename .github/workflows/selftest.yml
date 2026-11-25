@@ -25,8 +25,10 @@ jobs:
           cat .progress/caps
           # Sur un runner GitHub, ces deux capacités doivent être réelles : sinon le selftest
           # ne prouverait pas les contrôles réseau et kubectl top.
-          grep -qx netpol=1 .progress/caps
-          grep -qx metrics=1 .progress/caps
+          for c in ckad-a ckad-b; do
+            grep -qx "netpol@$c=1" .progress/caps
+            grep -qx "metrics@$c=1" .progress/caps
+          done
 
       - name: Selftest de toutes les unités
         run: bin/ex selftest --all -j 4
