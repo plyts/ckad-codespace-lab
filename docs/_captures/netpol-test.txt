@@ -1,0 +1,2 @@
+$ lab netpol-test ckad-a
+PASS [ckad-a] NetworkPolicy appliquées : trafic OK avant deny-all, coupé après

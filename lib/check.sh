@@ -17,6 +17,9 @@
 #   ck_http  "titre" "ns" "labels" "url" 'regex attendue' "pourquoi" "diagnostic" [doc]
 #            (url peut commencer par des options wget : "--header=Host:x.lab.local http://traefik.traefik.svc/")
 #   ck_http_blocked "titre" "ns" "labels" "url" "pourquoi" "diagnostic" [doc]
+#   ck_tcp   "titre" "ns" "labels" "hôte" port "envoi" 'regex réponse' "pourquoi" "diagnostic" [doc]
+#   ck_tcp_blocked "titre" "ns" "labels" "hôte" port "envoi" 'regex réponse' "pourquoi" "diagnostic" [doc]
+#            (services non HTTP, ex. Redis : envoi "PING", réponse "PONG" ; wget y échoue même sans règle)
 # Raccourcis : k (kubectl sur $CTX), kn (kubectl sur $CTX -n $NS), jp KIND NOM JSONPATH [ns]
 
 CHECK_WAIT="${CHECK_WAIT:-3}"
@@ -138,6 +141,50 @@ ck_http_blocked() { # titre ns labels url pourquoi diag [doc]
   _probe_stop "$ns"
   if [[ $ok == 1 ]]; then _ck_report 1 "$title"
   else _ck_report 0 "$title" "connexion vers $url refusée ou expirée" "réponse reçue : $body" "$5" "$6" "${7:-}"; fi
+}
+
+_probe_tcp() { # ns hôte port envoi : réponse brute du service (nc de busybox)
+  kubectl --context "$CTX" -n "$1" exec "$_probe_pod" -- sh -c "printf '$4\\r\\n' | nc -w 3 $2 $3" 2>&1
+}
+
+ck_tcp() { # titre ns labels hôte port envoi regex pourquoi diag [doc]
+  local title="$1" ns="$2" labels="$3" host="$4" port="$5" send="$6" re="$7" body="" ok=0 deadline
+  if _probe_start "$ns" "$labels"; then
+    deadline=$((SECONDS + CHECK_WAIT))
+    while :; do
+      body="$(_probe_tcp "$ns" "$host" "$port" "$send" | head -c 200 | tr '\r\n' '  ')"
+      [[ "$body" =~ $re ]] && { ok=1; break; }
+      (( SECONDS >= deadline )) && break
+      sleep 2
+    done
+  else
+    body="impossible de démarrer le pod client dans le namespace $ns"
+  fi
+  _probe_stop "$ns"
+  if [[ $ok == 1 ]]; then _ck_report 1 "$title"
+  else _ck_report 0 "$title" "réponse de $host:$port contenant /$re/" "$body" "$8" "$9" "${10:-}"; fi
+}
+
+ck_tcp_blocked() { # titre ns labels hôte port envoi regex pourquoi diag [doc]
+  local title="$1" ns="$2" labels="$3" host="$4" port="$5" send="$6" re="$7" body="" ok=0 deadline
+  if ! cap netpol; then
+    _ck_report skip "$title" "non vérifiable : ce cluster n'applique pas les NetworkPolicy (voir lab netpol-test)"
+    return 0
+  fi
+  if _probe_start "$ns" "$labels"; then
+    deadline=$((SECONDS + CHECK_WAIT))
+    while :; do
+      body="$(_probe_tcp "$ns" "$host" "$port" "$send" | head -c 200 | tr '\r\n' '  ')"
+      if [[ ! "$body" =~ $re ]]; then ok=1; break; fi
+      (( SECONDS >= deadline )) && break
+      sleep 2
+    done
+  else
+    body="impossible de démarrer le pod client dans le namespace $ns"
+  fi
+  _probe_stop "$ns"
+  if [[ $ok == 1 ]]; then _ck_report 1 "$title"
+  else _ck_report 0 "$title" "aucune réponse de $host:$port" "réponse reçue : $body" "$8" "$9" "${10:-}"; fi
 }
 
 # Appelée automatiquement à la fin du check.sh (trap) : ligne lue par le lanceur.

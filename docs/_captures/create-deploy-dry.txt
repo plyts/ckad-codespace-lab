@@ -1,0 +1,24 @@
+$ kubectl -n guide create deployment shop --image=nginx:1.27-alpine --replicas=3 --dry-run=client -o yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: shop
+  name: shop
+  namespace: guide
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: shop
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: shop
+    spec:
+      containers:
+      - image: nginx:1.27-alpine
+        name: nginx
+        resources: {}
+status: {}

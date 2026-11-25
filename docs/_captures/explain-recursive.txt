@@ -1,0 +1,19 @@
+$ kubectl explain deploy.spec.strategy --recursive
+GROUP:      apps
+KIND:       Deployment
+VERSION:    v1
+
+FIELD: strategy <DeploymentStrategy>
+
+
+DESCRIPTION:
+    The deployment strategy to use to replace existing pods with new ones.
+    DeploymentStrategy describes how to replace existing pods with new ones.
+    
+FIELDS:
+  rollingUpdate	<RollingUpdateDeployment>
+    maxSurge	<IntOrString>
+    maxUnavailable	<IntOrString>
+  type	<string>
+  enum: Recreate, RollingUpdate
+

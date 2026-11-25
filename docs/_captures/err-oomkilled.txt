@@ -1,0 +1,3 @@
+$ kubectl -n journal get pod oom -o jsonpath='{.status.containerStatuses[0].lastState.terminated}' | python3 -m json.tool | grep -E 'reason|exitCode'
+    "exitCode": 137,
+    "reason": "OOMKilled",

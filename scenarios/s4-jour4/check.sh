@@ -9,5 +9,7 @@ ck_http "Via l'Ingress : la boutique répond" "$NS" "" "--header=Host:boutique.l
   "Ingress boutique ET NetworkPolicy ingress-to-front (namespaceSelector traefik)." "kubectl -n $NS describe ingress boutique; kubectl -n $NS describe netpol ingress-to-front"
 ck_http "front joint l'API" "$NS" "app=front" "http://api.$NS" "api v1" \
   "front-to-api doit autoriser le port du conteneur (5678), pas celui du Service." "kubectl -n $NS describe netpol front-to-api"
-ck_http_blocked "front ne joint pas Redis" "$NS" "app=front" "http://redis.$NS:6379" \
+ck_tcp "api joint Redis (PING → PONG)" "$NS" "app=api" "redis.$NS" 6379 PING "PONG" \
+  "api-to-redis doit autoriser les Pods app=api vers app=redis, port 6379 (Redis n'est pas un service HTTP : on teste en TCP)." "kubectl -n $NS describe netpol api-to-redis"
+ck_tcp_blocked "front ne joint pas Redis" "$NS" "app=front" "redis.$NS" 6379 PING "PONG" \
   "Seul api-to-redis ouvre Redis, et seulement aux Pods app=api." "kubectl -n $NS describe netpol"

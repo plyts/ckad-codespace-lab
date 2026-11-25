@@ -1,0 +1,4 @@
+$ kubectl -n guide get rs -l app=front -o custom-columns=RS:.metadata.name,DESIRED:.spec.replicas,IMAGE:.spec.template.spec.containers[0].image | sed -E 's/-[a-z0-9]{8,10}( |$)/-<hash>\1/'
+RS                 DESIRED   IMAGE
+front-<hash>   0         nginx:1.28-alpine
+front-<hash>   2         nginx:1.27-alpine

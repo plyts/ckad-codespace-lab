@@ -1,0 +1,6 @@
+$ kubectl -n guide run http-test --image=busybox:1.37 --restart=Never -- wget -qO- http://api && kubectl -n guide wait --for=jsonpath='{.status.phase}'=Succeeded pod/http-test --timeout=60s
+pod/http-test created
+pod/http-test condition met
+
+$ kubectl -n guide logs http-test
+api v1

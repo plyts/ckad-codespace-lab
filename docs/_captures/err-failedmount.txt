@@ -1,0 +1,4 @@
+$ kubectl -n journal describe pod mount | sed -n '/^Events:/,$p' | tail -3
+  ----     ------       ----                 ----               -------
+  Normal   Scheduled    <âge>                default-scheduler  Successfully assigned journal/mount to ckad-a-worker2
+  Warning  FailedMount  <âge> (xN sur <durée>)  kubelet            MountVolume.SetUp failed for volume "s" : secret "absent" not found

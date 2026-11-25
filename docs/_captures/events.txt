@@ -1,0 +1,7 @@
+$ kubectl -n guide get events --sort-by=.lastTimestamp | tail -6
+<âge>          Normal   ScalingReplicaSet   deployment/api                Scaled up replica set api-5555b5df from 2 to 3
+<âge>          Normal   SuccessfulCreate    replicaset/api-5555b5df       Created pod: api-5555b5df-qs6mt
+<âge>          Normal   Started             pod/api-5555b5df-qs6mt        Container started
+<âge>          Normal   Created             pod/api-5555b5df-qs6mt        Container created
+<âge>          Normal   Pulled              pod/api-5555b5df-qs6mt        Container image "hashicorp/http-echo:1.0.0" already present on machine and can be accessed by the pod
+<âge>          Normal   Scheduled           pod/api-5555b5df-qs6mt        Successfully assigned guide/api-5555b5df-qs6mt to ckad-a-worker

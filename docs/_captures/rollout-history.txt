@@ -1,0 +1,6 @@
+$ kubectl -n guide rollout history deploy/front
+deployment.apps/front 
+REVISION  CHANGE-CAUSE
+1         v1 nginx 1.27
+2         passage en 1.28
+

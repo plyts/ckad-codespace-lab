@@ -1,0 +1,12 @@
+$ lab status
+Versions : kind v0.33.0, kubectl v1.37.0, nœud v1.37.0
+Clusters : ckad-a ckad-b 
+Contexte courant : ckad-a
+--- ckad-a
+NAME                   STATUS   ROLES           AGE     VERSION
+ckad-a-control-plane   Ready    control-plane   <âge>   v1.37.0
+ckad-a-worker          Ready    <none>          <âge>   v1.37.0
+ckad-a-worker2         Ready    <none>          <âge>   v1.37.0
+--- ckad-b
+NAME                   STATUS   ROLES           AGE   VERSION
+ckad-b-control-plane   Ready    control-plane   <âge>   v1.37.0

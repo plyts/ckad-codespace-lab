@@ -1,0 +1,22 @@
+$ kubectl -n guide get deploy,rs,pods,svc -o wide
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                      SELECTOR
+deployment.apps/api     2/2     2            2           <âge>    api          hashicorp/http-echo:1.0.0   app=api
+deployment.apps/front   2/2     2            2           <âge>    front        nginx:1.27-alpine           app=front
+deployment.apps/redis   1/1     1            1           <âge>    redis        redis:7.4-alpine            app=redis
+
+NAME                               DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES                      SELECTOR
+replicaset.apps/api-5555b5df       2         2         2       <âge>    api          hashicorp/http-echo:1.0.0   app=api,pod-template-hash=5555b5df
+replicaset.apps/front-79f47d45b7   2         2         2       <âge>    front        nginx:1.27-alpine           app=front,pod-template-hash=79f47d45b7
+replicaset.apps/redis-678c7bcf6b   1         1         1       <âge>    redis        redis:7.4-alpine            app=redis,pod-template-hash=678c7bcf6b
+
+NAME                         READY   STATUS    RESTARTS   AGE   IP           NODE             NOMINATED NODE   READINESS GATES
+pod/api-5555b5df-598h9       1/1     Running   0          <âge>    10.244.2.4   ckad-a-worker2   <none>           <none>
+pod/api-5555b5df-9kv89       1/1     Running   0          <âge>    10.244.1.4   ckad-a-worker    <none>           <none>
+pod/front-79f47d45b7-q45ww   1/1     Running   0          <âge>    10.244.1.5   ckad-a-worker    <none>           <none>
+pod/front-79f47d45b7-zzcsv   1/1     Running   0          <âge>    10.244.2.5   ckad-a-worker2   <none>           <none>
+pod/redis-678c7bcf6b-7f9n2   1/1     Running   0          <âge>    10.244.2.3   ckad-a-worker2   <none>           <none>
+
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE   SELECTOR
+service/api     ClusterIP   10.96.37.178    <none>        80/TCP     <âge>    app=api
+service/front   ClusterIP   10.96.163.30    <none>        80/TCP     <âge>    app=front
+service/redis   ClusterIP   10.96.106.176   <none>        6379/TCP   <âge>    app=redis

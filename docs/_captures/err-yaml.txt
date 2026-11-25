@@ -1,0 +1,2 @@
+$ printf 'apiVersion: v1\nkind: Pod\nmetadata:\n  name: bad\nspec:\n containers:\n  - name: bad\n   image: nginx\n' | kubectl -n journal apply -f -
+error: error parsing STDIN: error converting YAML to JSON: yaml: line 7: did not find expected '-' indicator

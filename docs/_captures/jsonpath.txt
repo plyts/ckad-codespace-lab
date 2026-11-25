@@ -1,0 +1,6 @@
+$ kubectl -n guide get pods -o jsonpath='{range .items[*]}{.metadata.labels.app}{"\t"}{.status.podIP}{"\n"}{end}' | sort
+api	10.244.1.4
+api	10.244.2.4
+front	10.244.1.5
+front	10.244.2.5
+redis	10.244.2.3

@@ -1,0 +1,12 @@
+$ kubectl -n guide run dns-test --image=busybox:1.37 --restart=Never -- nslookup api.guide.svc.cluster.local && kubectl -n guide wait --for=jsonpath='{.status.phase}'=Succeeded pod/dns-test --timeout=60s
+pod/dns-test created
+pod/dns-test condition met
+
+$ kubectl -n guide logs dns-test
+Server:		10.96.0.10
+Address:	10.96.0.10:53
+
+Name:	api.guide.svc.cluster.local
+Address: 10.96.37.178
+
+
