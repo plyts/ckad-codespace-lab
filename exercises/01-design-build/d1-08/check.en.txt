@@ -1,0 +1,3 @@
+The DaemonSet node-agent exists|||You need a DaemonSet (apps/v1).
+One Pod scheduled on every node|||The control plane carries the node-role.kubernetes.io/control-plane:NoSchedule taint: without a toleration, the DaemonSet avoids it.
+All Pods are ready|||Every DaemonSet Pod must be Ready.

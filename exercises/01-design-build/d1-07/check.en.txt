@@ -1,0 +1,5 @@
+The image ckad/hello:v1 exists|||The image must be built with the exact tag ckad/hello:v1 (option -t).
+Label maintainer=ckad|||Dockerfile instruction: LABEL maintainer=ckad, then rebuild.
+Variable APP_VERSION=v1|||Dockerfile instruction: ENV APP_VERSION=v1.
+Port 8080 exposed|||Dockerfile instruction: EXPOSE 8080.
+Archive ~/ckad/d1-07/hello.tar containing ckad/hello:v1|||docker save -o file.tar image:tag writes the image and its tag into the archive.

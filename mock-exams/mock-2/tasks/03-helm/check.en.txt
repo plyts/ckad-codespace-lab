@@ -1,0 +1,4 @@
+Revision 2 deployed|||helm upgrade blog <chart> --set …
+3 replicas ready|||--set replicaCount=3.
+MESSAGE|||--set message=v2.
+history.txt|||helm history blog > ~/ckad/m2-03/history.txt.

@@ -1,0 +1,15 @@
+$ ex start d1-01 >/dev/null && ex check d1-01 | sed -n 1,14p
+███ d1-01 — First nginx Pod
+    domain 1 · Application Design and Build (20%) · level beginner · about 3 min
+    Context : kubectl config use-context ckad-a    Namespace : d1-01
+    Doc : https://kubernetes.io/docs/concepts/workloads/pods/
+
+FAIL  1. The Pod web exists
+      expected   : web
+      found      : <nothing>
+      why        : The task asks for a Pod named exactly web, in namespace d1-01.
+      diagnosis  : kubectl -n d1-01 get pods
+      doc        : https://kubernetes.io/docs/concepts/workloads/pods/
+FAIL  2. Image nginx:1.27-alpine
+      expected   : nginx:1.27-alpine
+      found      : <nothing>

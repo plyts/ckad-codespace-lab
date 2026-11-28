@@ -1,0 +1,4 @@
+ServiceAccount deployer|||kubectl create serviceaccount deployer.
+The Pod uses deployer|||spec.serviceAccountName (the serviceAccount field alone is deprecated).
+Token not mounted|||automountServiceAccountToken: false in the Pod (or on the ServiceAccount).
+Pod ready|||The Pod must run.

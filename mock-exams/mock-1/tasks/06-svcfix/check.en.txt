@@ -1,0 +1,2 @@
+The Service answers|||Two mistakes: tier=backend does not exist on the Pods (tier=api) and targetPort 8080 instead of 5678.
+endpoints.txt contains the Pod IPs|||kubectl get endpointslices -l kubernetes.io/service-name=inventory -o wide.

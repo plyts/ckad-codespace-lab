@@ -1,0 +1,2 @@
+Backup nightly exists|||The CRD defines kind Backup of group lab.ckad.io, version v1 (apiVersion: lab.ckad.io/v1).
+schedule and retention|||retention is an integer (no quotes), schedule a string.

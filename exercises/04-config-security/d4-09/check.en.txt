@@ -1,0 +1,5 @@
+2 replicas ready|||The Deployment must run.
+ServiceAccount portal-sa|||spec.template.spec.serviceAccountName.
+Requests 50m / 32Mi|||The container's resources.requests.
+API_KEY read from the Secret|||env.valueFrom.secretKeyRef {name: portal-key, key: API_KEY}.
+nginx serves « Portal OK »|||A configMap volume creates one file per key: index.html in /usr/share/nginx/html.

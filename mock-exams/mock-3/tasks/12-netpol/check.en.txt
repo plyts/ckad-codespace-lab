@@ -1,0 +1,4 @@
+podSelector app=ledger, type Ingress|||The policy sits on the destination.
+Source role=accounting, port 80|||ingress[0].from[0].podSelector and ingress[0].ports[0].port.
+role=accounting goes through|||Allowed traffic must go through.
+Others are blocked|||An Ingress policy selecting a Pod denies everything it does not list.

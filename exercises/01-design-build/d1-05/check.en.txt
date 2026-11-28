@@ -1,0 +1,4 @@
+Init container prepare present|||An init container runs to completion BEFORE the main containers.
+Container nginx present|||The main container must be named nginx.
+The Pod is ready|||If the init container fails, the Pod stays in Init:Error or Init:CrashLoopBackOff.
+HTTP on the Pod returns « site prêt »|||nginx serves /usr/share/nginx/html: the init must write into the same volume, as index.html.

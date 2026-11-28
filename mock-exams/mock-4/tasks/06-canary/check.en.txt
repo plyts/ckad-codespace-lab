@@ -1,0 +1,3 @@
+Canary: 1 ready|||The canary carries app=pricing.
+Stable scaled down to 4|||4 + 1 = 5.
+5 ready Endpoints|||The Service sees every app=pricing Pod.

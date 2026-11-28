@@ -1,0 +1,3 @@
+Schedule|||spec.schedule.
+Policy and history|||concurrencyPolicy and successfulJobsHistoryLimit under the CronJob's spec.
+Job report-manual created from the CronJob|||kubectl create job report-manual --from=cronjob/report.

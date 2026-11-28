@@ -1,0 +1,3 @@
+Image back to nginx:1.27-alpine|||nginx:1.99-nexistepas does not exist: ErrImagePull then ImagePullBackOff. kubectl rollout undo goes back to the previous revision.
+3 replicas updated and ready|||After the rollback, the ImagePullBackOff Pods are replaced.
+No Pod failing to pull|||No Pod of the broken revision may remain.

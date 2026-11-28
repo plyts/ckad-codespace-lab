@@ -1,0 +1,4 @@
+Requests 100m / 64Mi|||resources.requests: what the scheduler reserves.
+Limits 200m / 128Mi|||resources.limits: CPU throttled above, memory killed (OOMKilled).
+QoS class recorded|||requests < limits: Burstable. requests = limits everywhere: Guaranteed. Nothing: BestEffort.
+Pod ready|||The Pod must run.

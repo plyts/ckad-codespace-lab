@@ -1,0 +1,2 @@
+Image redis:7.4-alpine|||Tag 7.4-alpinee does not exist: ErrImagePull then ImagePullBackOff (the kubelet spaces its attempts).
+1 replica ready|||The new Pod must start.

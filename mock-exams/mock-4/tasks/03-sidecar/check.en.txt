@@ -1,0 +1,3 @@
+reader is a native sidecar|||Native sidecar: initContainers + restartPolicy: Always.
+Pod Running|||The Pod must run.
+reader logs show « trace »|||Same volume, same path /trail in both containers.

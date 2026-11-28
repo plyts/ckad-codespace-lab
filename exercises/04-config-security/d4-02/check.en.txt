@@ -1,0 +1,4 @@
+Secret db-cred (password)|||In a Secret, data is base64-encoded (not encrypted!). Mind the quotes around S3cr3t! in bash.
+Secret db-cred (username)|||--from-literal=username=admin.
+DB_PASSWORD references the Secret|||env: - name: DB_PASSWORD valueFrom: secretKeyRef: {name: db-cred, key: password}
+Value inside the container|||The container sees the decoded value.

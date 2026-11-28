@@ -1,0 +1,7 @@
+default-deny|||podSelector: {} + policyTypes: [Ingress], without a rule.
+front-to-api|||The policy sits on the DESTINATION (api) and allows the source (front).
+api-to-redis|||Destination redis, source api, port 6379.
+Through the Ingress: the shop answers|||Ingress boutique AND NetworkPolicy ingress-to-front (namespaceSelector traefik).
+front reaches the API|||front-to-api must allow the container port (5678), not the Service's.
+api reaches Redis (PING → PONG)|||api-to-redis must allow app=api Pods to app=redis, port 6379 (Redis is not an HTTP service: tested over TCP).
+front does not reach Redis|||Only api-to-redis opens Redis, and only to app=api Pods.

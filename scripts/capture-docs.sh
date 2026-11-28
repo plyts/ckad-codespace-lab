@@ -88,6 +88,15 @@ guide() {
   cap check-fail "ex start d1-01 >/dev/null && ex check d1-01 | sed -n 1,14p"
   cap check-pass "kubectl -n d1-01 run web --image=nginx:1.27-alpine --labels=app=web --port=80 && kubectl -n d1-01 wait --for=condition=Ready pod/web --timeout=90s" "ex check d1-01 | tail -9"
   cap netpol-test "lab netpol-test ckad-a"
+  # Mêmes sorties du labo en anglais (ex lang en), pour la version anglaise du guide.
+  (
+    export CKAD_LANG=en
+    cap lab-status.en "lab status"
+    k delete ns d1-01 --ignore-not-found --wait=true >/dev/null
+    cap check-fail.en "ex start d1-01 >/dev/null && ex check d1-01 | sed -n 1,14p"
+    cap check-pass.en "kubectl -n d1-01 run web --image=nginx:1.27-alpine --labels=app=web --port=80 && kubectl -n d1-01 wait --for=condition=Ready pod/web --timeout=90s" "ex check d1-01 | tail -9"
+    cap netpol-test.en "lab netpol-test ckad-a"
+  )
   meta guide
   k delete ns d1-01 --wait=false >/dev/null 2>&1 || true
 }

@@ -1,0 +1,3 @@
+CronJob cleanup created|||batch/v1beta1 CronJob was removed in 1.25: use batch/v1.
+PDB web-pdb created|||policy/v1beta1 PodDisruptionBudget was removed in 1.25: use policy/v1.
+No v1beta1 API left in the file|||The task asks to fix the file (it will be reused).

@@ -1,0 +1,4 @@
+ingressClassName traefik|||The lab controller is Traefik (class traefik). In the exam, the class is given in the task.
+Host shop.lab.local|||rules[].host.
+/ → front|||The / rule (Prefix) must target Service front, port 80.
+/api → api|||The /api rule (Prefix) must target Service api, port 8080 (the Service port, not the container's).

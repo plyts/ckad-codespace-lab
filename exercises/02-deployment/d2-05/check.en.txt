@@ -1,0 +1,5 @@
+Strategy RollingUpdate|||Two strategies: RollingUpdate (default) and Recreate.
+maxUnavailable = 0|||maxUnavailable: 0 keeps full capacity during the update.
+maxSurge = 1|||maxSurge: 1 allows one Pod more than replicas during the update.
+minReadySeconds = 5|||minReadySeconds is under the Deployment's spec, not in the template.
+revisionHistoryLimit = 4|||revisionHistoryLimit (10 by default): number of old ReplicaSets kept.

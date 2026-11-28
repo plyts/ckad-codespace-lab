@@ -1,0 +1,2 @@
+Image back to redis:7.4-alpine, 2 replicas ready|||kubectl rollout undo deploy/sessions.
+Revision recorded|||rollout history: the revision that worked is number 1.

@@ -1,0 +1,5 @@
+PVC data Bound|||With kind's standard StorageClass (WaitForFirstConsumer), the PVC stays Pending until a Pod uses it.
+Requested size 100Mi|||The requested size is under spec.resources.requests.storage.
+Mode ReadWriteOnce|||accessModes is a list: [ReadWriteOnce].
+The Pod writer uses the PVC data|||The Pod volume references the PVC through persistentVolumeClaim.claimName.
+File /data/proof.txt written|||The volume must be mounted on /data in the container.

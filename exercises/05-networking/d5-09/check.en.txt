@@ -1,0 +1,5 @@
+Service catalog 8080 → 5678|||kubectl expose deploy catalog --port=8080 --target-port=5678.
+Ingress: host and path|||--rule='catalog.lab.local/catalog*=catalog:8080'.
+Through the Ingress: catalog ok|||Traffic from Traefik must go through (namespaceSelector traefik).
+NetworkPolicy: from namespace traefik|||namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: traefik}}.
+Direct access to the Service blocked|||Only Traefik may reach the catalog Pods.

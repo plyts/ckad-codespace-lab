@@ -1,0 +1,2 @@
+Template: serviceAccountName uploader|||kubectl set serviceaccount deploy/ingest uploader.
+Running Pods under uploader|||The rolling update replaces the Pods.

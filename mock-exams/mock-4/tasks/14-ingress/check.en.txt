@@ -1,0 +1,3 @@
+/ → shop|||Rule / to shop:80.
+/cart → cart|||Rule /cart to cart:9090 (the Service port).
+Class traefik|||--class=traefik.

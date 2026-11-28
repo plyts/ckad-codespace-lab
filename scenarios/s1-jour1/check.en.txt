@@ -1,0 +1,7 @@
+Deployment redis: 1 replica(s) ready|||Create Deployment redis with 1 replica(s) and wait until it is ready.
+Deployment api: 2 replica(s) ready|||Create Deployment api with 2 replica(s) and wait until it is ready.
+Deployment front: 2 replica(s) ready|||Create Deployment front with 2 replica(s) and wait until it is ready.
+Service redis 6379|||kubectl expose deploy redis --port=6379.
+Service api: 80 → 5678|||The Service publishes port 80, the container listens on 5678.
+http://api answers « api v1 »|||Selector and ports of Service api.
+http://front answers (nginx)|||Service front, port 80.

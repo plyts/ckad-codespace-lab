@@ -1,0 +1,3 @@
+Type and ports|||kubectl expose deploy gateway --name=gateway-svc --type=NodePort --port=80 --target-port=5678.
+The Service answers|||Selector app=gateway, targetPort 5678.
+nodePort 30180|||Edit the Service or write the YAML.

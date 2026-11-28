@@ -1,0 +1,3 @@
+PVC media-pvc Bound, 150Mi|||WaitForFirstConsumer: Bound as soon as a Pod uses it.
+The Pod mounts the PVC|||volumes[].persistentVolumeClaim.claimName.
+File written|||Mounted on /media.

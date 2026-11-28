@@ -1,0 +1,4 @@
+uid 2000 and runAsNonRoot|||runAsUser and runAsNonRoot (Pod or container level).
+drop ALL, add NET_BIND_SERVICE|||capabilities: {drop: [ALL], add: [NET_BIND_SERVICE]} (container level only).
+No escalation|||allowPrivilegeEscalation: false.
+id -u = 2000|||The Pod must run.

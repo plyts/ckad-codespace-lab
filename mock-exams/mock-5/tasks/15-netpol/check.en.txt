@@ -1,0 +1,4 @@
+podSelector app=secrets-api, type Ingress|||The policy sits on the destination.
+Source access=granted, port 80|||ingress[0].from[0].podSelector and ingress[0].ports[0].port.
+access=granted goes through|||Allowed traffic must go through.
+Others are blocked|||An Ingress policy selecting a Pod denies everything it does not list.

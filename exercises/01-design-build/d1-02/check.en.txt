@@ -1,0 +1,5 @@
+The Job counter exists|||You need a Job object (batch/v1), not a Pod.
+completions = 3|||completions = number of Pods that must succeed.
+parallelism = 2|||parallelism = maximum number of Pods at the same time.
+backoffLimit = 2|||backoffLimit caps retries on failure (6 by default).
+3 Pods succeeded|||The Job must finish. If a Pod fails, read its logs.

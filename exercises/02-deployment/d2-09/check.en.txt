@@ -1,0 +1,5 @@
+Deployment prod-web created in d2-09|||namePrefix: prod- and namespace: d2-09 in kustomization.yaml, then kubectl apply -k.
+3 replicas ready|||Field replicas: - name: web count: 3 (the name BEFORE the prefix).
+Label env=prod on the Deployment|||labels: - pairs: {env: prod} (or commonLabels, deprecated but still accepted).
+Service prod-web labelled env=prod|||The label must apply to every resource of the base.
+Overlay saved at the right path|||The graded file is ~/ckad/d2-09/overlays/prod/kustomization.yaml and it must be valid.

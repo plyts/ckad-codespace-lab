@@ -1,0 +1,3 @@
+Selector color=green|||Change the Service selector.
+profile-blue at 0, kept|||kubectl scale --replicas=0 keeps the Deployment.
+The Service answers green|||The Service must target the green Pods.

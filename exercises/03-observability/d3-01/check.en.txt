@@ -1,0 +1,1 @@
+code.txt contains the right code|||kubectl logs talker | grep SECRET_CODE, then keep only the value (cut -d= -f2).

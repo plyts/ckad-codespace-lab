@@ -1,0 +1,5 @@
+default-deny: every Pod, Ingress|||podSelector: {} selects every Pod; policyTypes [Ingress] without an ingress rule = block everything.
+allow-frontend targets app=api|||The policy applies to the Pods selected by podSelector.
+allow-frontend: from role=frontend, port 80|||ingress[].from[].podSelector and ingress[].ports[].port.
+A role=frontend Pod reaches api|||Allowed traffic must go through.
+Another Pod is blocked|||Without the role=frontend label, default-deny applies.

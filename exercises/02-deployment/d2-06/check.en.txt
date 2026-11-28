@@ -1,0 +1,5 @@
+Release shop deployed|||helm install <release> <chart> -n <namespace>.
+replicaCount = 2|||Values are passed with --set replicaCount=2 (or -f values.yaml).
+Image nginx:1.28-alpine|||--set image.tag=1.28-alpine: a nested key is written with a dot.
+2 replicas ready|||The release Pods must run.
+values.txt contains the default values|||helm show values <chart> > file.

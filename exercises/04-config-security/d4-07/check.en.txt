@@ -1,0 +1,5 @@
+monitor can list Pods|||A Role with verbs get,list,watch on pods, bound to the ServiceAccount by a RoleBinding.
+monitor can read logs|||Logs are a subresource: pods/log.
+monitor cannot delete a Pod|||Least privilege: read only.
+monitor cannot see Secrets|||The Role must only cover pods and pods/log.
+Permissions limited to the namespace|||A Role + RoleBinding only applies in its namespace (ClusterRole + ClusterRoleBinding for the whole cluster).

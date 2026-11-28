@@ -1,0 +1,3 @@
+Pod edge ready, image nginx:1.28-alpine|||kubectl run edge --image=nginx:1.28-alpine --labels=tier=edge,env=prod --port=80.
+Label tier=edge|||--labels=tier=edge,env=prod.
+Manifest saved|||kubectl run … --dry-run=client -o yaml > file, or kubectl get pod -o yaml > file.

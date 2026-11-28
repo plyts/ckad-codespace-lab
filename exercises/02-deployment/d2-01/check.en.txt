@@ -1,0 +1,4 @@
+Deployment front|||You need a Deployment (apps/v1), not standalone Pods.
+Image nginx:1.27-alpine|||The image is in the Pod template.
+Selector app=front|||kubectl create deployment front automatically sets app=front on the selector and the Pods.
+3 replicas ready|||Replicas must be Running and Ready.

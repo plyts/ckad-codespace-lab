@@ -1,0 +1,6 @@
+The CronJob backup exists|||You need a CronJob (batch/v1).
+Scheduled every 5 minutes|||Cron format: minute hour day month weekday. Every 5 minutes: */5 * * * *
+successfulJobsHistoryLimit = 2|||History of successful Jobs (3 by default).
+failedJobsHistoryLimit = 1|||History of failed Jobs (1 by default, but explicit here).
+concurrencyPolicy = Forbid|||Forbid skips a run while the previous one is still running (Allow by default, Replace replaces).
+Container command|||The requested command is sh -c 'echo sauvegarde'.

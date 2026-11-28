@@ -1,0 +1,2 @@
+prd-shop: 3 ready, image 1.28|||namePrefix, replicas and images in the overlay's kustomization.yaml.
+Label tier=prod|||labels: - pairs: {tier: prod}.

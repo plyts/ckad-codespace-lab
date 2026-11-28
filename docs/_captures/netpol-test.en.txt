@@ -1,0 +1,2 @@
+$ lab netpol-test ckad-a
+FAIL [ckad-a] NetworkPolicies NOT enforced (before=2 after=2) : network checks will be SKIP

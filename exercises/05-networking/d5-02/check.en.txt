@@ -1,0 +1,3 @@
+Type NodePort|||kubectl expose … --type=NodePort.
+nodePort 30080|||kubectl expose cannot choose the nodePort: edit the Service or write the YAML (range 30000-32767).
+Reachable through a node IP on 30080|||A NodePort opens the same port on every node.

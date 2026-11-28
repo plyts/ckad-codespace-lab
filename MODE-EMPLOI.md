@@ -5,7 +5,9 @@ et à celle qui le **maintient**. Il ne suppose aucune connaissance de Kubernete
 un compte GitHub.
 
 - Dépôt : <https://github.com/plyts/ckad-codespace-lab>
-- Guide en ligne (GitHub Pages) : <https://plyts.github.io/ckad-codespace-lab/>
+- Guide en ligne (GitHub Pages) : <https://plyts.github.io/ckad-codespace-lab/> (en anglais :
+  <https://plyts.github.io/ckad-codespace-lab/en/>)
+- *English version of this guide: [MODE-EMPLOI.en.md](MODE-EMPLOI.en.md).*
 
 ---
 
@@ -24,6 +26,19 @@ un compte GitHub.
 
 Le labo ne contient **aucune IA**. Les corrections et les explications sont écrites d'avance,
 et les scripts vérifient l'état réel du cluster.
+
+### Langue : français ou anglais
+
+Tout existe dans les deux langues : consignes, indices, messages des contrôles, solutions,
+examens blancs, cours, QCU et guide.
+
+```bash
+ex lang en
+```
+
+Le choix est enregistré dans `.progress/lang` et vaut pour `ex`, `mock`, `lab` et `doctor.sh` ;
+`ex lang fr` revient au français. Pour une seule commande : `CKAD_LANG=en ex check d1-01`. Sur le
+guide HTML, utilise le sélecteur **FR / EN** de l'en-tête.
 
 ## 2. Avant de commencer : quota et coût
 
@@ -123,6 +138,7 @@ affiche ton tableau de progression par domaine.
 
 | Commande | Rôle |
 |---|---|
+| `ex lang fr\|en` | Langue de tout le labo |
 | `ex list [1-5\|debutant\|…]` | Liste des exercices et leur statut |
 | `ex start <id>` · `ex check <id>` | Démarrer (remet à zéro) · vérifier |
 | `ex hint <id> [1-3]` · `ex solution <id>` | Indices · réponse de référence commentée |
@@ -234,12 +250,27 @@ exercises/04-config-security/d4-02/
 ├── setup.sh     préparation (facultatif) ; reçoit CTX, NS, OUT, ROOT
 ├── check.sh     contrôles, avec l'API de lib/check.sh (ck_eq, ck_match, ck_true, ck_http,
 │                ck_http_blocked, ck_tcp, ck_tcp_blocked)
-└── hints.md     ## Indice 1 … ## Indice 3, du général au précis
-.answers/d4-02/solution.sh   la réponse de référence, commentée, avec ses variantes
+├── hints.md     ## Indice 1 … ## Indice 3, du général au précis
+└── *.en.*       task.en.md, hints.en.md, check.en.txt : version anglaise (générée)
+.answers/d4-02/solution.sh      la réponse de référence, commentée, avec ses variantes
+.answers/d4-02/solution.en.sh   mêmes commandes, commentaires en anglais (généré)
 ```
 
 Un contrôle vérifie l'**état** du cluster, jamais la méthode. Pour chaque échec, il dit
 l'attendu, le trouvé, le pourquoi, la commande de diagnostic et la doc.
+
+### Le contenu anglais
+
+Le texte anglais est dans `i18n/en_units.py` (exercices, scénarios), `i18n/en_mocks.py`
+(examens blancs) et `i18n/en_solutions.py` (commentaires des solutions). Après toute
+modification d'une consigne, d'un contrôle ou d'une solution :
+
+```bash
+python3 i18n/apply_en.py
+```
+
+Il refuse une unité sans traduction, un nombre de contrôles différent de `check.sh` et un
+commentaire français non traduit. La CI lance `python3 i18n/apply_en.py --check`.
 
 ### La règle d'or : le selftest
 
@@ -250,6 +281,7 @@ ex selftest d4-02
 Le selftest prépare l'unité, vérifie que le contrôle **échoue**, applique la solution, puis
 vérifie qu'il **passe**. GitHub Actions rejoue toutes les unités à chaque push et pull request
 (workflow `selftest`), sur un runner où les NetworkPolicy et metrics-server fonctionnent.
+`CKAD_LANG=en ex selftest --all` fait de même avec les solutions anglaises.
 
 ### Changer de version de Kubernetes
 

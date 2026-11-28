@@ -1,0 +1,2 @@
+Image 1.28 and 4 replicas ready|||kubectl set image then kubectl scale.
+Revision cause|||kubectl annotate deploy portal kubernetes.io/change-cause='montée de version'.

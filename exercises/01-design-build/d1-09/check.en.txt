@@ -1,0 +1,6 @@
+Pod report ready|||The Pod must run.
+Volume work in memory|||emptyDir.medium: Memory mounts a tmpfs (RAM).
+Limit 16Mi|||emptyDir.sizeLimit: 16Mi.
+Init container stamp|||Writing happens in an init container named stamp.
+reader prints the report|||The reader container reads the file written by the init: same volume, same path.
+Manifest saved in ~/ckad/d1-09/report.yaml|||In the exam, a task often asks to save a file at a precise path: it is graded.

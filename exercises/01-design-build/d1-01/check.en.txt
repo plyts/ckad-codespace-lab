@@ -1,0 +1,5 @@
+The Pod web exists|||The task asks for a Pod named exactly web, in namespace $NS.
+Image nginx:1.27-alpine|||The tag is part of the image: nginx without a tag pulls latest, not 1.27-alpine.
+Label app=web|||Labels drive selectors (Services, Deployments). Use kubectl run --labels=app=web or kubectl label.
+Container port 80 declared|||containerPort is informational but expected here: kubectl run --port=80 sets it.
+The Pod is ready|||A created Pod is not necessarily started: read the events if it stays Pending or in error.

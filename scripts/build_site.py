@@ -141,16 +141,30 @@ def colorize(txt):
     return "\n".join(out)
 
 
+MASKS_EN = (("<âge>", "<age>"), ("<horodatage>", "<timestamp>"), ("(il y a <durée>)", "(<duration> ago)"),
+            ("(xN sur <durée>)", "(xN over <duration>)"), ("<durée>", "<duration>"))
+
+
+def masks(text, lang):
+    """Masques des captures (âges, horodatages) dans la langue de la page."""
+    if lang == "en":
+        for fr_, en_ in MASKS_EN:
+            text = text.replace(fr_, en_)
+    return text
+
+
 def capture_block(name, lang):
     s = S[lang]
     f = CAPS / f"{name}.txt"
+    if lang == "en" and (CAPS / f"{name}.en.txt").exists():
+        f = CAPS / f"{name}.en.txt"
     if not f.exists():
         return f'\n<div class="callout missing"><b>{s["missing"]}</b> : <code>{name}</code> — {s["missing_hint"]}.</div>\n'
     mf = CAPS / ("journal.meta" if name.startswith("err-") else "guide.meta")
     meta = mf.read_text().strip() if mf.exists() else "?"
     if lang == "en":
         meta = meta.replace("capturé le", "captured on").replace(" sur ", " on ").replace("contexte", "context")
-    body = colorize(html.escape(f.read_text().rstrip()))
+    body = colorize(html.escape(masks(f.read_text().rstrip(), lang)))
     return (f'\n<figure class="term"><pre class="terminal"><code>{body}</code></pre>'
             f'<figcaption>{s["real"]} · {html.escape(meta)}</figcaption></figure>\n')
 
@@ -291,7 +305,7 @@ def gen_course_chapter(ch, lang):
             parts.append(f'<p class="badge">{badge}</p>\n\n```bash\n{textwrap.dedent(c["cmd"]).strip()}\n```\n')
         out = CAPS / "course" / f"{c['id']}.txt"
         if out.exists() and out.read_text().strip():
-            body = colorize(html.escape(out.read_text().rstrip()))
+            body = colorize(html.escape(masks(out.read_text().rstrip(), lang)))
             parts.append(f'<details class="out"><summary>{s["out"]}</summary>\n<pre class="terminal"><code>{body}</code></pre>\n</details>\n')
         if c.get("yaml"):
             parts.append(f'<p class="badge">{s["yaml_ok"]}</p>\n\n```yaml\n{textwrap.dedent(c["yaml"]).strip()}\n```\n')

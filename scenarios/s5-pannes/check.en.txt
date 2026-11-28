@@ -1,0 +1,5 @@
+orders ready|||CreateContainerConfigError: key DB_HOST is missing from orders-config (it is named DBHOST).
+orders-config contains DB_HOST|||The task asks to fix the ConfigMap.
+payments answers|||The Service selector (app=payment) does not match the Pods (app=payments): no Endpoint.
+PVC uploads Bound|||StorageClass fast does not exist (kubectl get storageclass). storageClassName is immutable: recreate the PVC.
+uploader Running|||The Pod waits for its PVC; recreate it if it stays stuck.

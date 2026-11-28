@@ -1,0 +1,3 @@
+Existing class (traefik)|||There is no nginx IngressClass in this cluster: no controller picks the Ingress up (no ADDRESS).
+Service port: 80|||The backend targets the SERVICE port (80), not 8080.
+blog.lab.local returns « blog ok »|||Right class + right port: Traefik routes the request.
