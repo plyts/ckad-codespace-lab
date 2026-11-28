@@ -1,0 +1,12 @@
+NAME          ADDRESSTYPE   PORTS   ENDPOINTS                              AGE
+front-xl84f   IPv4          80      10.244.1.89,10.244.3.100,10.244.1.90   <âge>
+Selector:                 app=front
+TargetPort:               80/TCP
+Endpoints:                10.244.1.89:80,10.244.3.100:80,10.244.1.90:80
+NAME                    READY   STATUS    RESTARTS   AGE   IP             NODE             NOMINATED NODE   READINESS GATES
+front-66bcd9f9c-g9xpn   1/1     Running   0          <âge>   10.244.1.90    ckad-a-worker    <none>           <none>
+front-66bcd9f9c-kmk7j   1/1     Running   0          <âge>   10.244.1.89    ckad-a-worker    <none>           <none>
+front-66bcd9f9c-tpj9m   1/1     Running   0          <âge>   10.244.3.100   ckad-a-worker2   <none>           <none>
+service/ghost created
+NAME          ADDRESSTYPE   PORTS     ENDPOINTS   AGE
+ghost-2r59g   IPv4          <unset>   <unset>     <âge>

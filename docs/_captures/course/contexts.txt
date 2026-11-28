@@ -1,0 +1,15 @@
+CURRENT   NAME     CLUSTER       AUTHINFO      NAMESPACE
+*         ckad-a   kind-ckad-a   kind-ckad-a   
+          ckad-b   kind-ckad-b   kind-ckad-b   
+ckad-a
+Switched to context "ckad-a".
+namespace/cours configured
+Context "ckad-a" modified.
+    namespace: cours
+Context "ckad-a" modified.
+NAMESPACE            NAME                                           READY   STATUS    RESTARTS      AGE
+guide                api-5555b5df-5dxkh                             1/1     Running   1 (il y a <durée>)   <âge>
+guide                api-5555b5df-q8c9v                             1/1     Running   1 (il y a <durée>)   <âge>
+guide                api-5555b5df-szcgn                             1/1     Running   1 (il y a <durée>)   <âge>
+guide                front-79f47d45b7-d76db                         1/1     Running   1 (il y a <durée>)   <âge>
+Warning: resource namespaces/cours is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.

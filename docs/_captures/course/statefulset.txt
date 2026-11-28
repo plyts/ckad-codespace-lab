@@ -1,0 +1,17 @@
+service/db created
+statefulset.apps/db created
+Waiting for 2 pods to be ready...
+Waiting for 1 pods to be ready...
+Waiting for 1 pods to be ready...
+partitioned roll out complete: 2 new pods have been updated...
+NAME   READY   STATUS    RESTARTS   AGE
+db-0   1/1     Running   0          <âge>
+db-1   1/1     Running   0          <âge>
+pod/dns created
+pod/dns condition met
+Server:		10.96.0.10
+Address:	10.96.0.10:53
+
+
+Name:	db-0.db.cours.svc.cluster.local
+Address: 10.244.1.67

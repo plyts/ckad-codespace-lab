@@ -1,0 +1,9 @@
+name: prod-api-conf-2h42td9ggm
+  name: prod-api
+  replicas: 2
+        image: nginx:1.28-alpine
+configmap/prod-api-conf-2h42td9ggm created
+deployment.apps/prod-api created
+Waiting for deployment "prod-api" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "prod-api" rollout to finish: 1 of 2 updated replicas are available...
+deployment "prod-api" successfully rolled out

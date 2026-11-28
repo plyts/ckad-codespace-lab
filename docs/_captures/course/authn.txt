@@ -1,0 +1,7 @@
+kind-ckad-a
+    client-certificate-data: …
+ATTRIBUTE                                           VALUE
+Username                                            kubernetes-admin
+Groups                                              [kubeadm:cluster-admins system:authenticated]
+Extra: authentication.kubernetes.io/credential-id   [X509SHA256=6c3be7ec6b51081afb9ff439cf1d7ab27d475e99404c31d6c31b76c01c9232ef]
+Error from server (Forbidden): secrets is forbidden: User "system:serviceaccount:cours:reader" cannot list resource "secrets" in API group "" in the namespace "cours"

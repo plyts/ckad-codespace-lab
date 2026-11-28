@@ -1,0 +1,27 @@
+pod/web created (server dry run)
+pod/web created
+pod/web condition met
+diff -u -N /tmp/LIVE-3533381646/v1.Pod.cours.web /tmp/MERGED-3406673161/v1.Pod.cours.web
+--- /tmp/LIVE-3533381646/v1.Pod.cours.web	2026-11-28 00:59:23.981612711 +0000
++++ /tmp/MERGED-3406673161/v1.Pod.cours.web	2026-11-28 00:59:23.981612711 +0000
+@@ -5,7 +5,7 @@
+     kubectl.kubernetes.io/last-applied-configuration: |
+       {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{},"labels":{"run":"web"},"name":"web","namespace":"cours"},"spec":{"containers":[{"image":"nginx:1.27-alpine","name":"web","ports":[{"containerPort":80}],"resources":{}}],"dnsPolicy":"ClusterFirst","restartPolicy":"Always"},"status":{}}
+   creationTimestamp: "<horodatage>"
+-  generation: 1
++  generation: 2
+   labels:
+     run: web
+   name: web
+@@ -14,7 +14,7 @@
+   uid: fbfbbd0a-0a07-42d1-85d2-d9b203189c9c
+ spec:
+   containers:
+-  - image: nginx:1.27-alpine
++  - image: nginx:1.28-alpine
+     imagePullPolicy: IfNotPresent
+     name: web
+     ports:
+pod "web" deleted from cours namespace
+pod/web replaced
+pod "web" deleted from cours namespace

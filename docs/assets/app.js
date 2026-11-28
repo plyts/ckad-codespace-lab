@@ -1,6 +1,8 @@
 // Guide du labo CKAD : thème, barre de lecture, boutons Copier, coloration, menu mobile.
 (function () {
   var root = document.documentElement;
+  var EN = root.lang === "en";
+  var T = { copy: EN ? "Copy" : "Copier", copied: EN ? "Copied" : "Copié" };
   try { var t = localStorage.getItem("ckad-theme"); if (t) root.setAttribute("data-theme", t); } catch (e) {}
   document.getElementById("theme").addEventListener("click", function () {
     var dark = root.getAttribute("data-theme") === "dark" ||
@@ -26,16 +28,17 @@
 
   document.querySelectorAll("pre").forEach(function (pre) {
     var code = pre.querySelector("code"); if (!code) return;
+    if (pre.closest("#quiz-app")) return;
     if (!pre.classList.contains("terminal") && window.hljs) {
       if (/language-(yaml|bash|sh|text)/.test(code.className) || !/language-/.test(code.className)) {
         try { hljs.highlightElement(code); } catch (e) {}
       }
     }
-    var b = document.createElement("button"); b.className = "copy"; b.textContent = "Copier";
+    var b = document.createElement("button"); b.className = "copy"; b.textContent = T.copy;
     b.addEventListener("click", function () {
       var txt = code.innerText;
       if (pre.classList.contains("terminal")) txt = txt.split("\n")[0].replace(/^\$ /, "");  // seulement la commande
-      navigator.clipboard.writeText(txt).then(function () { b.textContent = "Copié"; setTimeout(function () { b.textContent = "Copier"; }, 1200); });
+      navigator.clipboard.writeText(txt).then(function () { b.textContent = "Copié"; setTimeout(function () { b.textContent = T.copy; }, 1200); });
     });
     pre.appendChild(b);
   });

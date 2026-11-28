@@ -1,0 +1,15 @@
+namespace/cours-b created
+resourcequota/small created
+→ refusé : must specify requests/limits
+limitrange/defaults created
+pod/withdefaults created
+Name:            small
+Namespace:       cours-b
+Resource         Used  Hard
+--------         ----  ----
+limits.cpu       <âge>  1
+limits.memory    64Mi  512Mi
+pods             1     3
+requests.cpu     <âge>   <âge>
+requests.memory  32Mi  256Mi
+Error from server (Forbidden): pods "nolimits" is forbidden: failed quota: small: must specify limits.cpu for: nolimits; limits.memory for: nolimits; requests.cpu for: nolimits; requests.memory for: nolimits

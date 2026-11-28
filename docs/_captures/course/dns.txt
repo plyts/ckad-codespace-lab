@@ -1,0 +1,29 @@
+NAME       TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE
+kube-dns   ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   <âge>
+pod/lookup created
+pod/lookup condition met
+Server:		10.96.0.10
+Address:	10.96.0.10:53
+
+
+** server can't find front.svc.cluster.local: NXDOMAIN
+
+** server can't find front.svc.cluster.local: NXDOMAIN
+
+** server can't find front.cluster.local: NXDOMAIN
+
+** server can't find front.cluster.local: NXDOMAIN
+
+Name:	front.cours.svc.cluster.local
+Address: 10.96.37.163
+
+Server:		10.96.0.10
+Address:	10.96.0.10:53
+
+
+Name:	front.cours.svc.cluster.local
+Address: 10.96.37.163
+
+search cours.svc.cluster.local svc.cluster.local cluster.local
+nameserver 10.96.0.10
+options ndots:5

@@ -1,0 +1,11 @@
+service/front-np created
+service/docs created
+NAME       TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE   SELECTOR
+db         ClusterIP      None            <none>          6379/TCP       <âge>   app=db
+docs       ExternalName   <none>          kubernetes.io   <none>         <âge>    app=docs
+front      ClusterIP      10.96.37.163    <none>          80/TCP         <âge>   app=front
+front-np   NodePort       10.96.106.157   <none>          80:30090/TCP   <âge>    app=front
+web        ClusterIP      10.96.228.223   <none>          80/TCP         <âge>   app=web,version=green
+pod/np created
+pod/np condition met
+<title>Welcome to nginx!</title>

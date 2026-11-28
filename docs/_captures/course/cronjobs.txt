@@ -1,0 +1,7 @@
+cronjob.batch/nightly created
+cronjob.batch/nightly patched
+job.batch/nightly-now created
+job.batch/nightly-now condition met
+cronjob.batch/nightly patched
+NAME      SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+nightly   0 2 * * *   <none>     True      0        <none>          <âge>

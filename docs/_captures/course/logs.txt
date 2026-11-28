@@ -1,0 +1,12 @@
+prêt
+[pod/multi/shipper] Sat Nov 28 01:00:23 UTC 2026
+[pod/multi/app] prêt
+2026/11/28 01:00:13 [notice] 1#1: start worker process 26
+2026/11/28 01:00:13 [notice] 1#1: start worker process 27
+2026/11/28 01:00:13 [notice] 1#1: start worker process 28
+[pod/front-567869c7cc-8b2cm/nginx] 2026/11/28 01:00:13 [notice] 1#1: start worker process 28
+[pod/front-567869c7cc-gcss2/nginx] 2026/11/28 01:00:17 [notice] 1#1: start worker process 27
+[pod/front-567869c7cc-pp6dq/nginx] 2026/11/28 01:00:15 [notice] 1#1: start worker process 27
+calcul fini
+Found 3 pods, using pod/front-567869c7cc-8b2cm
+Found 3 pods, using pod/calc-kzcww

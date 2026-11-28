@@ -1,0 +1,10 @@
+pod/echo created
+pod/echo condition met
+Targeting container "echo". If you don't see processes from this container it may be because the container runtime doesn't support this feature.
+PID   USER     TIME  COMMAND
+    1 65532     0:00 /http-echo -text=ok
+   17 root      0:00 sh -c ps; sleep 30
+   28 root      0:00 ps
+Defaulting debug container name to debugger-lw9r5.
+NAME        READY   STATUS              RESTARTS   AGE
+echo-copy   0/2     ContainerCreating   0          <âge>

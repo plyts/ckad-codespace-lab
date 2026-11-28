@@ -1,0 +1,7 @@
+pod/once created
+pod/once condition met
+hello ckad
+pod/cmd created
+["sleep","3600"]
+pod "once" deleted from cours namespace
+pod "cmd" deleted from cours namespace

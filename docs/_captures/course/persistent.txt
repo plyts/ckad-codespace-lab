@@ -1,0 +1,10 @@
+NAME                 PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+standard (default)   rancher.io/local-path   Delete          WaitForFirstConsumer   false                  <âge>
+persistentvolume/cours-pv created
+persistentvolumeclaim/data created
+pod/writer created
+pod/writer condition met
+NAME       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM        STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+cours-pv   100Mi      RWO            Retain           Bound    cours/data   manuel         <unset>                          <âge>
+NAME   STATUS   VOLUME     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data   Bound    cours-pv   100Mi      RWO            manuel         <unset>                 <âge>

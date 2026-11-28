@@ -1,0 +1,8 @@
+node/ckad-a-worker labeled
+pod/fast created
+pod/fast condition met
+ckad-a-worker
+node/ckad-a-worker2 tainted
+Taints:             dedie=ia:NoSchedule
+node/ckad-a-worker2 untainted
+node/ckad-a-worker unlabeled

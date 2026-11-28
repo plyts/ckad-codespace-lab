@@ -1,0 +1,6 @@
+daemonset.apps/agent created
+Waiting for daemon set "agent" rollout to finish: 0 of 2 updated pods are available...
+Waiting for daemon set "agent" rollout to finish: 1 of 2 updated pods are available...
+daemon set "agent" successfully rolled out
+NAME    DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+agent   2         2         2       2            2           <none>          <âge>
