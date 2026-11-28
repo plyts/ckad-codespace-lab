@@ -1,0 +1,4 @@
+auditor can get deployments|||Role auditor-role + RoleBinding auditor-binding.
+auditor can list deployments|||Role auditor-role + RoleBinding auditor-binding.
+auditor can watch deployments|||Role auditor-role + RoleBinding auditor-binding.
+auditor cannot delete deployments|||Least privilege.

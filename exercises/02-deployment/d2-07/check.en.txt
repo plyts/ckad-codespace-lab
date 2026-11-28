@@ -1,0 +1,4 @@
+web-green: 2 replicas ready|||The new version must be ready BEFORE the switch.
+The Service selects version=green|||A blue/green switch is a change of the Service selector.
+web-blue kept|||Keeping blue allows an instant rollback.
+Service web answers green|||The Service must point to the green Pods (port 80 to 5678).

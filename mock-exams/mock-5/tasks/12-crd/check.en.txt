@@ -1,0 +1,2 @@
+Pipeline nightly-etl|||apiVersion: data.m5.lab/v1alpha1 (version served by the CRD).
+resources.txt|||kubectl api-resources --api-group=data.m5.lab > file.

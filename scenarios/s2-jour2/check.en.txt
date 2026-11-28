@@ -1,0 +1,5 @@
+front serves « Boutique jour 2 »|||configMap volume front-html mounted on /usr/share/nginx/html of container front.
+REDIS_PASSWORD from redis-auth|||env.valueFrom.secretKeyRef in container api.
+Secret: password|||kubectl create secret generic redis-auth --from-literal=password=r3d1s-pass.
+Resources of api|||kubectl set resources deploy api --requests=cpu=50m,memory=32Mi --limits=cpu=100m,memory=64Mi.
+api: 3 replicas ready and updated|||kubectl scale deploy api --replicas=3.

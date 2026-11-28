@@ -6,6 +6,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=/dev/null
 source "$ROOT/versions.env"
+# Langue : CKAD_LANG, sinon .progress/lang (ex lang en|fr), sinon français.
+if [[ -z "${CKAD_LANG:-}" && -f "$ROOT/.progress/lang" ]]; then CKAD_LANG="$(tr -d '[:space:]' < "$ROOT/.progress/lang")"; fi
+L() { if [[ "${CKAD_LANG:-fr}" == en ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
 
 c_red=$'\e[31m'; c_green=$'\e[32m'; c_yellow=$'\e[33m'; c_gray=$'\e[90m'; c_bold=$'\e[1m'; c_off=$'\e[0m'
 [[ -t 1 ]] || { c_red=; c_green=; c_yellow=; c_gray=; c_bold=; c_off=; }
@@ -19,7 +22,7 @@ clusters_for() {
     a|ckad-a) echo ckad-a ;;
     b|ckad-b) echo ckad-b ;;
     all) echo ckad-a ckad-b ;;
-    *) echo "cluster inconnu : $1 (a, b ou all)" >&2; exit 2 ;;
+    *) echo "$(L "cluster inconnu" "unknown cluster") : $1 (a, b, all)" >&2; exit 2 ;;
   esac
 }
 
@@ -32,7 +35,7 @@ exists() { kind get clusters 2>/dev/null | grep -qx "$1"; }
 ensure_network() {
   # Réseau Docker "kind" en IPv4 seul : contourne les pannes IPv6 de kind dans Codespaces.
   if ! docker network inspect kind >/dev/null 2>&1; then
-    say "Création du réseau Docker 'kind' (IPv4 seul)"
+    say "$(L "Création du réseau Docker 'kind' (IPv4 seul)" "Creating the 'kind' Docker network (IPv4 only)")"
     docker network create -d bridge \
       -o com.docker.network.bridge.enable_ip_masquerade=true \
       -o com.docker.network.driver.mtu=1500 kind >/dev/null
@@ -72,17 +75,17 @@ load_images() {
   for img in $LAB_IMAGES; do
     if ensure_image "$img"; then
       node_load "$cluster" "$img" \
-        && echo "  ${c_gray}image chargée :${c_off} $img" \
-        || warn "chargement échoué pour $img (le nœud la tirera lui-même)"
+        && echo "  ${c_gray}$(L "image chargée :" "image loaded:")${c_off} $img" \
+        || warn "$(L "chargement échoué pour $img (le nœud la tirera lui-même)" "loading failed for $img (the node will pull it itself)")"
     else
-      warn "image introuvable : $img"
+      warn "$(L "image introuvable :" "image not found:") $img"
     fi
   done
 }
 
 install_addons() {
   local cluster="$1" ctx="$1"
-  say "[$cluster] Traefik (contrôleur Ingress)"
+  say "[$cluster] Traefik ($(L "contrôleur Ingress" "Ingress controller"))"
   kubectl --context "$ctx" apply -f "$ROOT/infra/traefik.yaml" >/dev/null
   say "[$cluster] metrics-server (kubectl top)"
   # Installé seulement si l'image est là : un metrics-server en échec laisse une APIService
@@ -92,17 +95,17 @@ install_addons() {
     set_cap "metrics@$cluster" 1
   else
     set_cap "metrics@$cluster" 0
-    warn "image metrics-server inaccessible : non installé (kubectl top indisponible, exercices metrics-server en SKIP)"
+    warn "$(L "image metrics-server inaccessible : non installé (kubectl top indisponible, exercices metrics-server en SKIP)" "metrics-server image unreachable: not installed (kubectl top unavailable, metrics-server exercises SKIP)")"
   fi
   kubectl --context "$ctx" -n traefik rollout status deploy/traefik --timeout=180s >/dev/null \
-    && ok "[$cluster] Traefik prêt" || warn "[$cluster] Traefik pas encore prêt"
+    && ok "[$cluster] Traefik $(L prêt ready)" || warn "[$cluster] Traefik $(L "pas encore prêt" "not ready yet")"
 }
 
 create_cluster() {
   local cluster="$1"
-  if exists "$cluster"; then echo "${c_gray}$cluster existe déjà${c_off}"; return 0; fi
+  if exists "$cluster"; then echo "${c_gray}$cluster $(L "existe déjà" "already exists")${c_off}"; return 0; fi
   ensure_network
-  say "Création du cluster $cluster ($K8S_VERSION)"
+  say "$(L "Création du cluster" "Creating cluster") $cluster ($K8S_VERSION)"
   local cfg="$ROOT/kind/$cluster.yaml"
   # Correctifs pour hôtes restreints, appliqués seulement si détectés et toujours signalés.
   # Codespaces (cgroup v2, conteneur privilégié) n'en a normalement besoin d'aucun.
@@ -115,12 +118,12 @@ create_cluster() {
     cfg="$(mktemp --suffix=.yaml)"; cp "$ROOT/kind/$cluster.yaml" "$cfg"
     if (( need_cg )); then
       # Kubernetes >= 1.35 refuse cgroup v1 par défaut (failCgroupV1).
-      warn "hôte en cgroup v1 : ajout de failCgroupV1: false au kubelet"
+      warn "$(L "hôte en cgroup v1 : ajout de failCgroupV1: false au kubelet" "cgroup v1 host: adding failCgroupV1: false to the kubelet")"
       printf '%s\n' 'kubeadmConfigPatches:' '- |' '  kind: KubeletConfiguration' '  failCgroupV1: false' >> "$cfg"
     fi
     if (( need_oom )); then
       # Sans CAP_SYS_RESOURCE, runc ne peut pas baisser oom_score_adj : containerd doit le borner.
-      warn "hôte sans CAP_SYS_RESOURCE : ajout de restrict_oom_score_adj à containerd"
+      warn "$(L "hôte sans CAP_SYS_RESOURCE : ajout de restrict_oom_score_adj à containerd" "host without CAP_SYS_RESOURCE: adding restrict_oom_score_adj to containerd")"
       printf '%s\n' 'containerdConfigPatches:' '- |-' '  [plugins."io.containerd.cri.v1.runtime"]' '    restrict_oom_score_adj = true' >> "$cfg"
     fi
   fi
@@ -137,7 +140,7 @@ create_cluster() {
 delete_cluster() {
   local cluster="$1"
   exists "$cluster" || return 0
-  say "Suppression du cluster $cluster"
+  say "$(L "Suppression du cluster" "Deleting cluster") $cluster"
   kind delete cluster --name "$cluster"
   kubectl config delete-context "$cluster" >/dev/null 2>&1 || true
 }
@@ -160,7 +163,7 @@ netpol_test() {
   done
   if [[ "${before:-0}" -lt 1 ]]; then
     $k delete ns "$ns" --wait=false >/dev/null
-    fail "[$ctx] test non concluant : le trafic ne passe pas même sans NetworkPolicy"
+    fail "[$ctx] $(L "test non concluant : le trafic ne passe pas même sans NetworkPolicy" "inconclusive test: traffic fails even without a NetworkPolicy")"
     set_cap "netpol@$ctx" 0; return 1
   fi
   $k -n "$ns" apply -f - >/dev/null <<'EOF'
@@ -179,10 +182,10 @@ EOF
   done
   $k delete ns "$ns" --wait=false >/dev/null
   if [[ "$before" -ge 1 && "$after" == "0" ]]; then
-    ok "[$ctx] NetworkPolicy appliquées : trafic OK avant deny-all, coupé après"
+    ok "[$ctx] $(L "NetworkPolicy appliquées : trafic OK avant deny-all, coupé après" "NetworkPolicies enforced: traffic OK before deny-all, cut after")"
     set_cap "netpol@$ctx" 1
   else
-    fail "[$ctx] NetworkPolicy NON appliquées (avant=$before après=$after) : les contrôles réseau passeront en SKIP"
+    fail "[$ctx] $(L "NetworkPolicy NON appliquées" "NetworkPolicies NOT enforced") (before=$before after=$after) : $(L "les contrôles réseau passeront en SKIP" "network checks will be SKIP")"
     set_cap "netpol@$ctx" 0; return 1
   fi
 }
@@ -195,24 +198,24 @@ wake() {
     for n in $(kind get nodes --name "$c" 2>/dev/null); do docker start "$n" >/dev/null 2>&1 || true; done
   done
   for c in $(kind get clusters 2>/dev/null); do
-    say "[$c] réveil"
+    say "[$c] $(L réveil wake-up)"
     for n in $(seq 1 60); do kubectl --context "$c" get nodes >/dev/null 2>&1 && break; sleep 3; done
-    kubectl --context "$c" wait --for=condition=Ready node --all --timeout=180s >/dev/null 2>&1 || warn "[$c] nœuds pas encore prêts"
+    kubectl --context "$c" wait --for=condition=Ready node --all --timeout=180s >/dev/null 2>&1 || warn "[$c] $(L "nœuds pas encore prêts" "nodes not ready yet")"
     kubectl --context "$c" -n kube-system rollout restart deploy/coredns >/dev/null 2>&1
     kubectl --context "$c" -n kube-system rollout status deploy/coredns --timeout=180s >/dev/null 2>&1 \
-      && ok "[$c] CoreDNS prêt" || warn "[$c] CoreDNS pas encore prêt (relance : lab wake)"
+      && ok "[$c] CoreDNS $(L prêt ready)" || warn "[$c] CoreDNS $(L "pas encore prêt (relance : lab wake)" "not ready yet (rerun: lab wake)")"
     # Traefik APRÈS le réseau du nœud : relancé trop tôt, il ne joint pas l'API (règles réseau périmées).
     kubectl --context "$c" apply -f "$ROOT/infra/traefik.yaml" >/dev/null 2>&1
     kubectl --context "$c" -n traefik rollout restart deploy/traefik >/dev/null 2>&1
     kubectl --context "$c" -n traefik rollout status deploy/traefik --timeout=180s >/dev/null 2>&1 \
-      && ok "[$c] Traefik prêt" || warn "[$c] Traefik pas encore prêt (relance : lab wake)"
+      && ok "[$c] Traefik $(L prêt ready)" || warn "[$c] Traefik $(L "pas encore prêt (relance : lab wake)" "not ready yet (rerun: lab wake)")"
   done
 }
 
 status() {
-  echo "${c_bold}Versions${c_off} : kind $(kind version 2>/dev/null | awk '{print $2}'), kubectl $(kubectl version --client -o json 2>/dev/null | sed -n 's/.*"gitVersion": "\(v[^"]*\)".*/\1/p' | head -1), nœud $K8S_VERSION"
+  echo "${c_bold}Versions${c_off} : kind $(kind version 2>/dev/null | awk '{print $2}'), kubectl $(kubectl version --client -o json 2>/dev/null | sed -n 's/.*"gitVersion": "\(v[^"]*\)".*/\1/p' | head -1), $(L nœud node) $K8S_VERSION"
   echo "${c_bold}Clusters${c_off} : $(kind get clusters 2>/dev/null | tr '\n' ' ')"
-  echo "${c_bold}Contexte courant${c_off} : $(kubectl config current-context 2>/dev/null || echo aucun)"
+  echo "${c_bold}$(L "Contexte courant" "Current context")${c_off} : $(kubectl config current-context 2>/dev/null || L aucun none)"
   local c
   for c in $(kind get clusters 2>/dev/null); do
     echo "--- $c"; kubectl --context "$c" get nodes 2>/dev/null || true
@@ -222,7 +225,7 @@ status() {
 # Simule "ssh <hôte>" de l'examen : un shell dont le kubeconfig ne connaît qu'un cluster.
 lab_ssh() {
   local host="${1:?usage : lab ssh ckad-a|ckad-b}" tmp
-  exists "$host" || { fail "cluster $host absent (lab up ${host#ckad-})"; exit 1; }
+  exists "$host" || { fail "cluster $host $(L absent missing) (lab up ${host#ckad-})"; exit 1; }
   tmp="$(mktemp -d)"
   kubectl config view --minify --flatten --context "$host" > "$tmp/config"
   cat > "$tmp/rc" <<EOF
@@ -231,13 +234,28 @@ export KUBECONFIG="$tmp/config"
 alias k=kubectl
 complete -o default -F __start_kubectl k 2>/dev/null || true
 PS1='candidate@$host:\w\$ '
-echo "Connecté à $host (tape exit pour revenir à la base)"
+echo "Connected to / Connecté à $host (exit)"
 EOF
   bash --rcfile "$tmp/rc" -i || true
   rm -rf "$tmp"
 }
 
 usage() {
+  if [[ "${CKAD_LANG:-fr}" == en ]]; then
+    cat <<EOF
+lab — kind clusters of the CKAD lab ($K8S_VERSION)
+
+  lab up [a|b|all]      create the cluster(s) (default: a), preloaded images, Traefik, metrics-server
+  lab reset [a|b|all]   destroy then recreate (a clean cluster in one command)
+  lab down [a|b|all]    destroy (default: all)
+  lab status            versions, clusters, nodes
+  lab netpol-test [ctx] prove that NetworkPolicies really cut traffic
+  lab images [a|b|all]  reload the exercise images into the nodes
+  lab ssh ckad-a        shell limited to one cluster, like "ssh <host>" in the exam
+  lab wake              after a sleep: restart nodes, CoreDNS and Traefik
+EOF
+    return
+  fi
   cat <<EOF
 lab — clusters kind du labo CKAD ($K8S_VERSION)
 

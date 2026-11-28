@@ -1,0 +1,1 @@
+Name of the greediest Pod|||kubectl top pods --sort-by=cpu ranks Pods by usage.

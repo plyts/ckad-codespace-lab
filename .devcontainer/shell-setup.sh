@@ -27,4 +27,4 @@ syntax on
 EOF
 fi
 mkdir -p ~/ckad ~/ckad-questions
-echo "shell prêt : alias k, complétion, \$do, \$now, vim réglé pour le YAML"
+echo "shell prêt / shell ready : alias k, completion, \$do, \$now, vim (YAML)"

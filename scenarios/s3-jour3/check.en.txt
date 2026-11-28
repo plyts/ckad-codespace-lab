@@ -1,0 +1,5 @@
+incident.txt: status recorded|||kubectl get pods shows Error then CrashLoopBackOff (the kubelet spaces restarts).
+incident.txt: cause recorded|||kubectl logs <pod> (or --previous) prints: flag provided but not defined: -timeout (unknown option of v2).
+Revision v1 restored|||kubectl rollout undo deploy/api (or --to-revision=N, see rollout history).
+3 replicas ready and updated|||After the rollback, no v2 Pod is left.
+The API answers api v1|||Service api routes to the v1 Pods.

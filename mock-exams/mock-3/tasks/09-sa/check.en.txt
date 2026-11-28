@@ -1,0 +1,2 @@
+Template: serviceAccountName metrics-reader|||kubectl set serviceaccount deploy/collector metrics-reader.
+Running Pods under metrics-reader|||The rolling update replaces the Pods.

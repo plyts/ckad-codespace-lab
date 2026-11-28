@@ -1,0 +1,5 @@
+Quota: pods=5|||kubectl create quota ns-quota --hard=pods=5,requests.cpu=1,...
+Quota: requests and limits|||Quota keys contain a dot: requests.cpu.
+LimitRange: default requests|||defaultRequest = requests injected when missing.
+LimitRange: default limits|||default = limits injected when missing (type: Container).
+The Pod plain got the defaults|||With a quota on requests/limits, a Pod without resources is REJECTED… unless a LimitRange injects them. Create the LimitRange before the Pod.

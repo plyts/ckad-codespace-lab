@@ -1,0 +1,3 @@
+Label team=payments|||LABEL team=payments in the Dockerfile, then docker build -t ckad/m3-app:1.0.
+Port 9000 exposed|||EXPOSE 9000.
+Archive image.tar with tag ckad/m3-app:1.0|||docker save -o ~/ckad/m3-03/image.tar ckad/m3-app:1.0.

@@ -1,0 +1,5 @@
+client-egress targets app=client, type Egress|||policyTypes: [Egress] and podSelector app=client.
+Destination: namespace d5-07-db AND Pods app=db|||namespaceSelector (kubernetes.io/metadata.name: d5-07-db) and podSelector in the SAME to item (AND), not two items (OR).
+DNS allowed (port 53)|||Without DNS, the name db.d5-07-db no longer resolves: egress to 53/UDP and 53/TCP must be allowed.
+app=client reaches db.d5-07-db|||DNS + the db destination must be allowed.
+app=client cannot reach web.d5-07|||Once Egress is in policyTypes, anything not listed is blocked.

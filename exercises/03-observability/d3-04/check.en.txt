@@ -1,0 +1,3 @@
+Exit code 127 recorded|||describe pod shows Last State: Terminated, Exit Code. 127 = command not found (slep).
+1 replica available|||The command must be sleep 3600 (typo: slep).
+No Pod left in CrashLoopBackOff|||Old Pods disappear once the rolling update is over.

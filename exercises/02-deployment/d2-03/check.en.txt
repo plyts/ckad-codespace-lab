@@ -1,0 +1,4 @@
+Image nginx:1.28-alpine|||kubectl set image deploy/front nginx=nginx:1.28-alpine (container name = nginx).
+Revision 2|||Every template change creates a revision (a new ReplicaSet).
+Cause in the history|||--record is gone: annotate the Deployment after the update.
+All replicas updated and ready|||The rolling update must be finished.

@@ -1,0 +1,6 @@
+runAsUser / runAsGroup / fsGroup|||These fields are in spec.securityContext (Pod level).
+allowPrivilegeEscalation false|||Container field: containers[].securityContext.
+readOnlyRootFilesystem true|||Container field only (it does not exist at Pod level).
+capabilities drop ALL|||capabilities: {drop: [ALL]} (container level).
+The process runs as uid 1000|||The Pod must run to check it.
+Write refused on /|||Read-only root: touch /test must fail.

@@ -1,0 +1,2 @@
+File in networking.k8s.io/v1|||v1beta1 removed in 1.22. In v1: pathType mandatory, backend.service.name and backend.service.port.number.
+old.m5.lab.local answers « web ok »|||The converted Ingress must be applied.

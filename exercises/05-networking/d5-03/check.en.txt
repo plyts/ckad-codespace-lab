@@ -1,0 +1,2 @@
+FQDN|||Form: <service>.<namespace>.svc.cluster.local (cluster.local is the default domain).
+ClusterIP|||kubectl get svc db -o jsonpath='{.spec.clusterIP}'.

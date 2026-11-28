@@ -1,0 +1,3 @@
+LOG_LEVEL in the container|||env.valueFrom.configMapKeyRef.
+API_TOKEN in the container|||env.valueFrom.secretKeyRef.
+API_TOKEN comes from the Secret|||No plain value in the Pod.

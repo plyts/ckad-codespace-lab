@@ -1,0 +1,5 @@
+cause.txt mentions the liveness probe|||Unhealthy events say "Liveness probe failed … connection refused": port 8080 does not listen.
+Liveness on port 5678|||http-echo listens on 5678 (see containerPort).
+Startup probe GET / 5678|||startupProbe: until it succeeds, liveness and readiness are paused.
+Startup: failureThreshold 10, periodSeconds 2|||10 attempts × 2 s = 20 s to start.
+2 replicas ready and updated|||After the fix, the rolling update replaces the Pods.

@@ -1,0 +1,5 @@
+Liveness httpGet on /|||livenessProbe.httpGet.path: / .
+Port 80|||livenessProbe.httpGet.port: 80.
+initialDelaySeconds = 5|||Delay before the first attempt.
+periodSeconds = 10|||Interval between two attempts.
+Pod ready, no restart|||A failing liveness probe restarts the container.

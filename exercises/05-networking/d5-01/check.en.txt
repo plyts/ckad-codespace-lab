@@ -1,0 +1,4 @@
+Service web of type ClusterIP|||kubectl expose creates a ClusterIP by default.
+Port 80 → 80|||port = Service port; targetPort = container port.
+2 ready Endpoints|||The Service selector must match the Pod labels (app=web).
+http://web.$NS answers|||Short DNS name of the Service in the same namespace: web; full: web.$NS.svc.cluster.local.

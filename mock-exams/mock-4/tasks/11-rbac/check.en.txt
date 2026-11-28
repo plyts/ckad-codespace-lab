@@ -1,0 +1,5 @@
+deployer can get deployments|||Role deployer-role + RoleBinding deployer-binding.
+deployer can list deployments|||Role deployer-role + RoleBinding deployer-binding.
+deployer can create deployments|||Role deployer-role + RoleBinding deployer-binding.
+deployer can update deployments|||Role deployer-role + RoleBinding deployer-binding.
+deployer cannot delete pods|||Least privilege.

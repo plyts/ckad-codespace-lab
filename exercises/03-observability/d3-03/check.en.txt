@@ -1,0 +1,3 @@
+Readiness tcpSocket 5678|||readinessProbe.tcpSocket.port: the probe opens a TCP connection.
+periodSeconds 5 / initialDelaySeconds 2|||Both delays are in the probe.
+2 replicas ready|||Readiness: a non-ready Pod leaves the Service Endpoints, without a restart.

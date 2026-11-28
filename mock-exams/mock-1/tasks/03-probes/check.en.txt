@@ -1,0 +1,3 @@
+Readiness GET /index.html:80, 5 s|||readinessProbe.httpGet + periodSeconds.
+Liveness TCP 80, 10 s / 15 s|||livenessProbe.tcpSocket + initialDelaySeconds + periodSeconds.
+2 replicas ready and updated|||/index.html must exist in nginx (/ works).

@@ -1,0 +1,4 @@
+Revision 2 deployed|||helm upgrade wiki <chart> --set …
+2 replicas ready|||--set replicaCount=2.
+MESSAGE|||--set message=maj.
+history.txt|||helm history wiki > ~/ckad/m4-05/history.txt.

@@ -1,0 +1,2 @@
+stg-shop: 2 ready, image 1.28|||namePrefix, replicas and images in the overlay's kustomization.yaml.
+Label tier=staging|||labels: - pairs: {tier: staging}.

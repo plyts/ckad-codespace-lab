@@ -1,0 +1,3 @@
+Init container seed|||initContainers[0].name = seed.
+Pod ready|||The Pod must run.
+The Pod serves « bienvenue m3 »|||The init writes into the volume nginx serves.

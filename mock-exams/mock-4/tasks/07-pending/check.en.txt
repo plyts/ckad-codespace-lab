@@ -1,0 +1,2 @@
+Pod Running|||FailedScheduling: no node has the label disk=ssd required by nodeSelector. Recreate the Pod without that nodeSelector.
+Nodes unchanged (no disk label)|||The task forbids labelling the nodes.

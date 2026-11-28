@@ -1,0 +1,3 @@
+ConfigMap app-config|||kubectl create configmap app-config --from-literal=APP_MODE=prod --from-literal=APP_COLOR=blue
+The Pod uses envFrom|||envFrom.configMapRef imports every key at once (env.valueFrom: one key at a time).
+Variables visible in the container|||Variables are only read when the container starts.

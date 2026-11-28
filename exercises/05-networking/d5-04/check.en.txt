@@ -1,0 +1,4 @@
+Selector app=shop|||The selector (app=shopp) matches no Pod: a Service without Endpoints.
+targetPort 5678|||http-echo listens on 5678: a wrong targetPort gives Connection refused.
+Deployment unchanged (2 replicas app=shop)|||The task requires fixing the Service.
+http://shop.$NS answers « shop ok »|||Selector AND target port must both be right.

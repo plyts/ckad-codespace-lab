@@ -1,0 +1,3 @@
+replicas = 5|||kubectl scale changes the Deployment's spec.replicas.
+5 replicas ready|||The new Pods must start.
+Deployment not recreated (same as at the start)|||Scaling creates no new revision: only the Pod count changes.

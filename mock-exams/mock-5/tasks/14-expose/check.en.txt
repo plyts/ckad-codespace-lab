@@ -1,0 +1,2 @@
+Type and ports|||kubectl expose deploy ranking --name=ranking-svc --type=ClusterIP --port=8080 --target-port=5678.
+The Service answers|||Selector app=ranking, targetPort 5678.

@@ -1,0 +1,1 @@
+One ready Pod per node|||Toleration node-role.kubernetes.io/control-plane:NoSchedule for the control plane.

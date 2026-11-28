@@ -1,0 +1,2 @@
+Status recorded|||kubectl get pods: ErrImagePull then ImagePullBackOff.
+Image fixed, 2 ready|||kubectl set image.

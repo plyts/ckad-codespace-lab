@@ -1,0 +1,2 @@
+File /etc/creds/pass|||A secret volume creates one file per key.
+Read-only mount|||volumeMounts[].readOnly: true.

@@ -33,8 +33,8 @@ if ! need helm "$HELM_VERSION" "helm version --short"; then
   rm -rf "$tmp"
 fi
 if ! need yq "$YQ_VERSION" "yq --version"; then
-  echo "==> yq $YQ_VERSION (présent à l'examen)"
+  echo "==> yq $YQ_VERSION (présent à l'examen / available in the exam)"
   $SUDO curl -fsSLo "$BIN/yq" "https://github.com/mikefarah/yq/releases/download/$YQ_VERSION/yq_linux_$ARCH"
   $SUDO chmod +x "$BIN/yq"
 fi
-echo "outils : kind $(kind version | awk '{print $2}') · kubectl $KUBECTL_VERSION · helm $(helm version --short) · yq $YQ_VERSION"
+echo "outils / tools : kind $(kind version | awk '{print $2}') · kubectl $KUBECTL_VERSION · helm $(helm version --short) · yq $YQ_VERSION"

@@ -1,0 +1,5 @@
+list pods|||forbidden.log: cannot list resource "pods" …: a Role and its RoleBinding are missing.
+list configmaps|||The Role must cover pods AND configmaps.
+No reading of Secrets|||Least privilege.
+No deletion|||Read only: get, list.
+Role and RoleBinding named reporter|||RoleBinding reporter references Role reporter.

@@ -1,5 +1,11 @@
 # Labo CKAD « de zéro à héros » — vérifié par l'exécution
 
+> **English** — A CKAD training lab for GitHub Codespaces, **with no AI**: two Kubernetes v1.37 kind
+> clusters, 45 exercises, 6 scenarios, 5 graded mock exams, a full course and a 100+ question quiz,
+> all checked against the real cluster state. Everything exists in English: run `ex lang en` in the
+> terminal, and read [MODE-EMPLOI.en.md](MODE-EMPLOI.en.md) and the English guide
+> <https://plyts.github.io/ckad-codespace-lab/en/>.
+
 Un labo d'entraînement au **CKAD** (Certified Kubernetes Application Developer) qui tourne dans
 GitHub Codespaces, **sans aucune IA**. Les clusters, les scripts de vérification et tes réponses
 vivent dans le même conteneur que ton terminal. Les explications et les corrections sont écrites
@@ -15,6 +21,10 @@ d'avance dans le dépôt.
 > **Mode d'emploi complet** (Codespaces, examens blancs, GitHub Pages, quotas, dépannage,
 > maintenance) : [MODE-EMPLOI.md](MODE-EMPLOI.md). Guide en ligne :
 > <https://plyts.github.io/ckad-codespace-lab/>
+
+**Langue** : tout le labo (consignes, indices, contrôles, solutions, examens, cours, QCU, guide)
+existe en français et en anglais. `ex lang en` passe en anglais, `ex lang fr` revient au français ;
+sur le guide, sélecteur **FR / EN** dans l'en-tête.
 
 ## Démarrer
 
@@ -38,6 +48,7 @@ ex start d1-01
 
 | Commande | Rôle |
 |---|---|
+| `ex lang fr\|en` | Langue de tout le labo (enregistrée dans `.progress/lang`) |
 | `ex start <id>` | Remet l'exercice à zéro et affiche la consigne (contexte, namespace, temps) |
 | `ex check <id>` | Contrôle l'état **réel** du cluster. Pour chaque échec : attendu, trouvé, pourquoi, diagnostic, doc |
 | `ex hint <id> [1-3]` | Indices progressifs |
@@ -91,14 +102,16 @@ versions.env     versions figées (source unique) · versions.md : sources et fa
 kind/            clusters ckad-a (1 control-plane + 2 workers) et ckad-b (1 nœud)
 infra/           Traefik (Ingress) et metrics-server
 bin/             lab, ex, mock, site
-lib/check.sh     API de vérification (ck_eq, ck_match, ck_true, ck_http, ck_http_blocked)
-exercises/       45 exercices : task.md, setup.sh, check.sh, hints.md
+lib/check.sh     API de vérification (ck_eq, ck_match, ck_true, ck_http, ck_http_blocked, ck_tcp…)
+exercises/       45 exercices : task.md, setup.sh, check.sh, hints.md (+ task.en.md, hints.en.md, check.en.txt)
 scenarios/       fil conducteur et pannes
 mock-exams/      5 examens blancs
 .answers/        réponses de référence (masquées dans VS Code)
 app/             application fil conducteur et chart Helm local
-docs/ → site/    guide HTML
-scripts/         doctor.sh
+course/          cours complet (47 notions, FR/EN) · quiz/ : QCU (FR/EN)
+i18n/            textes anglais des unités ; apply_en.py génère les fichiers .en
+docs/ → site/    guide HTML (site/ en français, site/en/ en anglais)
+scripts/         doctor.sh, build_site.py, verify-course.py, verify-quiz.py
 notes/           tes notes (notes/<id>.md, ignorées par git)
 ```
 

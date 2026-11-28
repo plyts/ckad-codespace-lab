@@ -1,0 +1,3 @@
+/ → home|||Rule / to home:80.
+/docs → docs|||Rule /docs to docs:9090 (the Service port).
+Class traefik|||--class=traefik.

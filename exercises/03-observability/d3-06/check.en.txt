@@ -1,0 +1,3 @@
+Reason recorded|||kubectl get events (or describe pod): REASON column. 50 whole CPUs fit on no node.
+CPU request 50m|||50 = 50 cores; 50m = 50 millicores. A Pod's resources are changed by recreating it (or through resize).
+Pod big Running|||The Pod must be scheduled and then start.

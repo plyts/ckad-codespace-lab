@@ -1,0 +1,6 @@
+The Pod logger is Running|||The Pod must run with both containers.
+Container app present|||The main container must be named app.
+Container shipper present|||The sidecar must be named shipper.
+shipper is a native sidecar (initContainer, restartPolicy Always)|||Since Kubernetes 1.29, a native sidecar is an initContainer with restartPolicy: Always: it starts before app and lives with the Pod.
+Both containers mount /var/log/app|||Sharing goes through the same volume mounted in both containers.
+kubectl logs logger -c shipper shows tick lines|||The sidecar reads the file written by app: check the volume and the app.log path.

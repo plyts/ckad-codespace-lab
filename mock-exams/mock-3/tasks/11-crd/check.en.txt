@@ -1,0 +1,2 @@
+Maintenance weekly|||apiVersion: ops.m3.lab/v1alpha1 (version served by the CRD).
+resources.txt|||kubectl api-resources --api-group=ops.m3.lab > file.

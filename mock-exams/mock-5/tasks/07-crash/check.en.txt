@@ -1,0 +1,3 @@
+1 replica available|||Exit code 3: /config/ready is missing. configMap volume notifier-config mounted on /config.
+Command unchanged|||The task forbids changing the command.
+ConfigMap mounted|||volumes[].configMap.name.

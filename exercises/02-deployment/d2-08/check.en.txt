@@ -1,0 +1,5 @@
+api-v2: 1 replica ready|||One canary Pod out of 5 gives about 20% of the traffic.
+api-v1 scaled down to 4 replicas|||4 stable + 1 canary = 5 Pods: the share comes from the Pod count.
+The canary carries app=api and track=canary|||The Service selects app=api: the canary needs that label to receive traffic.
+5 ready Pods behind the Service|||The Service does not change: it sees every app=api Pod.
+The Service selector did not change|||The task forbids changing the Service.

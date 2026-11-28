@@ -1,0 +1,3 @@
+completions / parallelism / backoffLimit|||Three fields under the Job's spec.
+4 successes|||The Job must finish.
+Logs say « redimensionné »|||Requested command: echo redimensionné.

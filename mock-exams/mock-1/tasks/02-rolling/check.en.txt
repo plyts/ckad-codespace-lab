@@ -1,0 +1,2 @@
+Image 1.28 and 4 replicas ready|||kubectl set image then kubectl scale.
+Revision cause|||kubectl annotate deploy storefront kubernetes.io/change-cause='nginx 1.28'.
