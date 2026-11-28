@@ -89,3 +89,28 @@ footer { margin-top: 60px; padding-top: 12px; border-top: 1px solid var(--line);
   main { margin-left: 0; padding: 16px; }
   header .tag { display: none; }
 }
+/* Bilingue, cours, QCU */
+header a.lang { font-weight: 700; text-decoration: none; color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 3px 10px; }
+header a.lang:hover { border-color: var(--accent); color: var(--accent); }
+nav#nav > a.sub { padding-left: 26px; font-size: 13px; }
+p.badge { display: inline-block; margin: .6em 0 .2em; padding: 2px 10px; border-radius: 999px; font-size: 12.5px;
+  background: var(--bg2); border: 1px solid var(--line); color: var(--muted); }
+details.out { margin: -.4em 0 1.2em; border-style: dashed; }
+details.out pre { margin: .6em 0 0; }
+#quiz-app .qbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 1em 0; }
+#quiz-app select, #quiz-app button { font: inherit; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--fg); cursor: pointer; }
+#quiz-app button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+#quiz-app .q { border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin: 1em 0; background: var(--bg2); }
+#quiz-app .q h3 { margin: 0 0 .6em; font-size: 16.5px; }
+#quiz-app .q .meta { color: var(--muted); font-size: 12.5px; margin-bottom: .5em; }
+#quiz-app .choice { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; margin: 6px 0;
+  padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+#quiz-app .choice code { background: none; padding: 0; white-space: pre-wrap; word-break: break-word; }
+#quiz-app .choice.ok { border-color: var(--ok); box-shadow: inset 4px 0 0 var(--ok); }
+#quiz-app .choice.ko { border-color: var(--err); box-shadow: inset 4px 0 0 var(--err); }
+#quiz-app .expl { margin-top: .8em; padding: 10px 14px; border-radius: 8px; border-left: 4px solid var(--accent); background: var(--bg); }
+#quiz-app .score { font-weight: 700; }
+#quiz-app select { max-width: 100%; }
+#quiz-app .q { min-width: 0; overflow-wrap: anywhere; }
+#quiz-app .expl pre { white-space: pre-wrap; word-break: break-word; }

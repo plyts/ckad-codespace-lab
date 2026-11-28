@@ -1,0 +1,21 @@
+----    ------     ----  ----               -------
+  Normal  Scheduled  <âge>    default-scheduler  Successfully assigned cours/probed to ckad-a-worker2
+  Normal  Pulled     <âge>    kubelet            spec.containers{web}: Container image "nginx:1.27-alpine" already present on machine and can be accessed by the pod
+  Normal  Created    <âge>    kubelet            spec.containers{web}: Container created
+  Normal  Started    <âge>    kubelet            spec.containers{web}: Container started
+  Normal  Pulled     <âge>    kubelet            spec.containers{worker}: Container image "busybox:1.37" already present on machine and can be accessed by the pod
+  Normal  Created    <âge>    kubelet            spec.containers{worker}: Container created
+  Normal  Started    <âge>    kubelet            spec.containers{worker}: Container started
+<âge>          Normal    Created                        pod/probed                          Container created
+<âge>          Normal    Started                        pod/probed                          Container started
+<âge>          Normal    Pulled                         pod/probed                          Container image "busybox:1.37" already present on machine and can be accessed by the pod
+<âge>          Normal    Created                        pod/probed                          Container created
+<âge>          Normal    Started                        pod/probed                          Container started
+<âge>          Normal   Pulled      pod/probed   Container image "busybox:1.37" already present on machine and can be accessed by the pod
+<âge>          Normal   Created     pod/probed   Container created
+<âge>          Normal   Started     pod/probed   Container started
+LAST SEEN   TYPE      REASON                         OBJECT                          MESSAGE
+<âge>         Warning   FailedGetResourceMetric        horizontalpodautoscaler/front   failed to get cpu utilization: unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API: the server could not find the requested resource (get pods.metrics.k8s.io)
+<âge>         Warning   FailedComputeMetricsReplicas   horizontalpodautoscaler/front   invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API: the server could not find the requested resource (get pods.metrics.k8s.io)
+<âge>         Warning   UnexpectedJob                  cronjob/nightly                 Saw a job that the controller did not create or forgot: nightly-now
+<âge>         Warning   FailedScheduling               pod/writer                      0/3 nodes are available: pod has unbound immediate PersistentVolumeClaims. not found

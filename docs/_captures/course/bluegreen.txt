@@ -1,0 +1,8 @@
+deployment.apps/web-blue created
+deployment.apps/web-green created
+service/web created
+Waiting for deployment "web-green" rollout to finish: 0 of 1 updated replicas are available...
+deployment "web-green" successfully rolled out
+service/web patched
+NAME        ADDRESSTYPE   PORTS   ENDPOINTS     AGE
+web-897tf   IPv4          5678    10.244.1.78   <âge>

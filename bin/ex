@@ -750,6 +750,53 @@ def cmd_mock(args):
         die("sous-commande inconnue")
 
 
+# ---------------------------------------------------------------- QCU
+def lang():
+    v = os.environ.get("CKAD_LANG")
+    if not v and (STATE_DIR / "lang").exists():
+        v = (STATE_DIR / "lang").read_text().strip()
+    return v if v in ("fr", "en") else "fr"
+
+
+def cmd_quiz(args):
+    """ex quiz [domaine 0-6] [-n N] : QCU dans le terminal (mêmes questions que le guide)."""
+    import random
+    sys.path.insert(0, str(ROOT / "quiz"))
+    import quiz
+    L = lang()
+    n = 10
+    if "-n" in args:
+        i = args.index("-n")
+        n = int(args[i + 1])
+        args = args[:i] + args[i + 2:]
+    qs = [q for q in quiz.QUESTIONS if not args or q["domain"] == args[0]]
+    random.shuffle(qs)
+    qs = qs[:n]
+    txt = (lambda v: v if isinstance(v, str) else v[L])
+    ok = 0
+    print(bold(("QCU CKAD" if L == "fr" else "CKAD quiz") + f" — {len(qs)} question(s)") +
+          col("90", "  (q = quitter / quit)"))
+    for i, q in enumerate(qs, 1):
+        print("\n" + bold(f"{i}. ") + txt(q["q"]).replace("`", "") + col("90", f"   [{q['domain']} · {txt(quiz.DOMAINS[q['domain']])}]"))
+        for k, c in enumerate(q["choices"]):
+            print(f"   {chr(65 + k)}. {txt(c).replace('`', '')}")
+        try:
+            a = input(("Ta réponse" if L == "fr" else "Your answer") + " (A-D) : ").strip().upper()
+        except EOFError:
+            break
+        if a == "Q":
+            break
+        good = chr(65 + q["answer"])
+        if a == good:
+            ok += 1
+            print(col("32", "✔ " + ("Bonne réponse." if L == "fr" else "Correct.")))
+        else:
+            print(col("31", "✘ " + ("Réponse : " if L == "fr" else "Answer: ") + good))
+        print(col("90", "   " + txt(q["why"]).replace("`", "")))
+        print("   $ " + q["cmd"])
+    print("\n" + bold(("Score : " if L == "fr" else "Score: ") + f"{ok}/{len(qs)}"))
+
+
 # ---------------------------------------------------------------- aide
 HELP = """ex — exercices du labo CKAD (aucune IA dans le labo)
 
@@ -763,6 +810,7 @@ HELP = """ex — exercices du labo CKAD (aucune IA dans le labo)
   ex next                    prochain exercice conseillé (révisions J+2 / J+7 d'abord)
   ex scenario [list|<id>]    scénarios du fil conducteur et pannes simulées
   ex ask <id>                prépare un fichier question à coller dans une IA, hors du labo
+  ex quiz [0-6] [-n N]       QCU dans le terminal (mêmes questions que le guide)
   ex selftest [ids|--all]    (construction/CI) chaque check échoue avant et passe après la solution
 
 mock — examens blancs : mock start N · mock show N · mock time N · mock grade N · mock review N · mock solution N T
@@ -781,7 +829,8 @@ def main():
         return
     cmds = {"list": cmd_list, "start": cmd_start, "check": cmd_check, "hint": cmd_hint,
             "solution": cmd_solution, "reset": cmd_reset, "status": cmd_status, "next": cmd_next,
-            "scenario": cmd_scenario, "ask": cmd_ask, "selftest": cmd_selftest, "mock": cmd_mock}
+            "scenario": cmd_scenario, "ask": cmd_ask, "selftest": cmd_selftest, "mock": cmd_mock,
+            "quiz": cmd_quiz}
     if args[0] not in cmds:
         die(f"commande inconnue : {args[0]}\n\n{HELP}")
     cmds[args[0]](args[1:])

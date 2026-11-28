@@ -33,6 +33,12 @@ jobs:
       - name: Selftest de toutes les unités
         run: bin/ex selftest --all -j 4
 
+      - name: Cours complet — chaque commande exécutée, chaque YAML validé par l'API
+        run: python3 scripts/verify-course.py
+
+      - name: QCU — structure et commandes de réponse exécutées
+        run: python3 scripts/verify-quiz.py
+
       - name: Rapport
         if: always()
         uses: actions/upload-artifact@v4

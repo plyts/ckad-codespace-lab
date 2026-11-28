@@ -1,0 +1,15 @@
+role.rbac.authorization.k8s.io/pod-reader created
+rolebinding.rbac.authorization.k8s.io/reader-pods created
+yes
+no
+Resources                                       Non-Resource URLs                      Resource Names   Verbs
+selfsubjectreviews.authentication.k8s.io        []                                     []               [create]
+selfsubjectaccessreviews.authorization.k8s.io   []                                     []               [create]
+selfsubjectrulesreviews.authorization.k8s.io    []                                     []               [create]
+pods/log                                        []                                     []               [get list watch]
+pods                                            []                                     []               [get list watch]
+clusterrole.rbac.authorization.k8s.io/cours-node-viewer created
+clusterrolebinding.rbac.authorization.k8s.io/cours-node-viewer created
+yes
+rolebinding.rbac.authorization.k8s.io/view-all created
+Warning: resource 'nodes' is not namespace scoped

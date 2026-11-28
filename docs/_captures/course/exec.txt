@@ -1,0 +1,5 @@
+healthy
+bonjour
+service/front exposed
+<title>Welcome to nginx!</title>
+nginx version: nginx/1.27.5

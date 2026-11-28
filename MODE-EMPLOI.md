@@ -18,7 +18,9 @@ un compte GitHub.
 | Fil conducteur (4 journées) et pannes | `scenarios/` | `ex scenario` |
 | 5 examens blancs notés | `mock-exams/` | `mock start N`, `mock grade N` |
 | Réponses, cachées jusqu'à ce que tu les demandes | `.answers/` | `ex solution` |
-| Guide HTML : notions, journal des erreurs, cheatsheet | `docs/`, en ligne sur Pages | `site serve` |
+| Guide HTML bilingue : notions, journal des erreurs, cheatsheet | `docs/`, en ligne sur Pages | `site serve` |
+| Cours complet, commandes exécutées | `course/course.py` → pages « Cours » du guide | `python3 scripts/verify-course.py` |
+| QCU de plus de cent questions | `quiz/quiz.py` → page « QCU » du guide | `ex quiz` |
 
 Le labo ne contient **aucune IA**. Les corrections et les explications sont écrites d'avance,
 et les scripts vérifient l'état réel du cluster.
@@ -127,6 +129,7 @@ affiche ton tableau de progression par domaine.
 | `ex reset <id>` | Remettre un exercice à zéro |
 | `ex status` · `ex next` | Tableau de progression · prochain exercice conseillé |
 | `ex scenario list` · `ex scenario s3-jour3` | Fil conducteur et pannes |
+| `ex quiz [0-6] [-n N]` | QCU dans le terminal ; domaine 0 (bases) à 6 (scénarios, examen) |
 | `ex ask <id>` | Prépare `~/ckad-questions/<id>-….md` (consigne, état du cluster, erreurs) que **tu** colles dans une IA, hors du labo |
 | `mock start N` · `mock show N` · `mock time N` | Lancer un examen blanc · relire le sujet · temps restant |
 | `mock grade N` · `mock review N` · `mock solution N T` | Noter · revoir les échecs · solution d'une tâche |

@@ -1,0 +1,15 @@
+NAME                CONTROLLER                      PARAMETERS   AGE
+traefik (default)   traefik.io/ingress-controller   <none>       <âge>
+ingress.networking.k8s.io/shop created
+ingress.networking.k8s.io/shop-secure created
+Rules:
+  Host            Path  Backends
+  ----            ----  --------
+  shop.lab.local  
+                  /       front:80 (10.244.1.89:80,10.244.3.100:80,10.244.1.90:80)
+                  /blue   web:80 (10.244.1.78:5678)
+Annotations:      <none>
+Events:           <none>
+pod/curl created
+pod/curl condition met
+green

@@ -1,0 +1,9 @@
+pod/broken created
+NAME     READY   STATUS   RESTARTS     AGE
+broken   0/1     Error    1 (il y a <durée>)   <âge>
+3
+unable to retrieve container logs for containerd://62a3111f276c109094ef9e3d740769e1592d95a3f5655b6e3675c8c7d338cc92    Last State:     Terminated
+      Reason:       Error
+      Exit Code:    3
+      Started:      Sat, 28 Nov 2026 01:00:35 +0000
+pod "broken" deleted from cours namespace

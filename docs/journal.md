@@ -123,3 +123,6 @@ Exercices : `d5-07`, `s4-jour4`.
 | R4 | namespace bloqué en `Terminating` : `stale GroupVersion discovery: metrics.k8s.io/v1beta1` | metrics-server installé sans son image | installer metrics-server seulement si l'image est disponible |
 | R5 | `serviceaccount "default" not found` juste après la création d'un namespace | course avec le contrôleur des ServiceAccounts | attendre le ServiceAccount `default` avant de créer des Pods |
 | R6 | `429 Too Many Requests` de Docker Hub | limite de débit anonyme | repli sur le miroir `mirror.gcr.io` |
+| R7 | après un redémarrage de Docker, DNS `bad address` et Traefik qui ne joint plus l'API (x509) | règles réseau du nœud périmées juste après le redémarrage | `lab wake` : relancer CoreDNS, puis Traefik |
+| R8 | Traefik `Pending` pendant un redémarrage progressif | le `hostPort` 80 n'existe qu'une fois par nœud | `strategy: Recreate` pour Traefik |
+| R9 | chemin d'Ingress `Exact` servi par `/` | Traefik classe les routes par longueur de règle | chemins `Prefix` dans le cours ; noté comme piège |

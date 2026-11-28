@@ -1,0 +1,16 @@
+pod/a created
+pod/b created
+NAME   READY   STATUS              RESTARTS   AGE   LABELS
+a      0/1     ContainerCreating   0          <âge>    app=shop,tier=front
+b      0/1     ContainerCreating   0          <âge>    app=shop,tier=db
+NAME   READY   STATUS              RESTARTS   AGE
+a      0/1     ContainerCreating   0          <âge>
+NAME   READY   STATUS              RESTARTS   AGE   TIER
+a      0/1     ContainerCreating   0          <âge>    front
+b      0/1     ContainerCreating   0          <âge>    db
+pod/a labeled
+pod/a labeled
+pod/a unlabeled
+pod/a annotated
+pod "a" deleted from cours namespace
+pod "b" deleted from cours namespace

@@ -61,6 +61,10 @@ metadata:
     app: traefik
 spec:
   replicas: 1
+  # Recreate : le hostPort 80 n'existe qu'une fois sur le nœud ; un rolling update (nouveau Pod avant
+  # l'arrêt de l'ancien) resterait bloqué en Pending.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: traefik

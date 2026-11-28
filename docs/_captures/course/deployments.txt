@@ -1,0 +1,16 @@
+deployment.apps/front created
+Waiting for deployment "front" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "front" rollout to finish: 1 of 2 updated replicas are available...
+deployment "front" successfully rolled out
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/front   2/2     2            2           <âge>
+
+NAME                               DESIRED   CURRENT   READY   AGE
+replicaset.apps/front-6c4c4d75c8   2         2         2       <âge>
+
+NAME                         READY   STATUS    RESTARTS   AGE
+pod/front-6c4c4d75c8-6n64t   1/1     Running   0          <âge>
+pod/front-6c4c4d75c8-hvlvc   1/1     Running   0          <âge>
+deployment.apps/front scaled
+Waiting for deployment "front" rollout to finish: 2 of 3 updated replicas are available...
+deployment "front" successfully rolled out

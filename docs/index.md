@@ -12,6 +12,12 @@ par `ex selftest`, et les faits d'examen viennent des pages officielles citées 
 Nouveau ? Commence par le [mode d'emploi](mode-emploi.html) : ouvrir ton Codespace, ta
 première séance, les examens blancs, le guide en ligne et le dépannage.
 
+- **[Cours complet](cours.html)** : toutes les notions de l'examen, chapitre par chapitre, avec des
+  commandes et des YAML **exécutés pour de vrai** sur un cluster v1.37 (et leurs sorties réelles).
+- **[QCU](quiz.html)** : plus de cent questions à choix unique sur toutes les notions et les scénarios,
+  chaque réponse expliquée par une commande précise ; aussi dans le terminal avec `ex quiz`.
+- **English version**: button **EN** at the top right of every page.
+
 ## L'examen en bref
 
 | | |

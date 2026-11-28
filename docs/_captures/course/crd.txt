@@ -1,0 +1,24 @@
+customresourcedefinition.apiextensions.k8s.io/certificats.cours.lab created
+customresourcedefinition.apiextensions.k8s.io/certificats.cours.lab condition met
+NAME          SHORTNAMES   APIVERSION     NAMESPACED   KIND
+certificats   cert         cours.lab/v1   true         Certificat
+GROUP:      cours.lab
+KIND:       Certificat
+VERSION:    v1
+
+FIELD: spec <Object>
+
+
+DESCRIPTION:
+    <empty>
+FIELDS:
+  domaine	<string> -required-
+    <no description>
+
+  jours	<integer>
+    <no description>
+
+
+certificat.cours.lab/shop created
+NAME   AGE
+shop   <âge>

@@ -1,0 +1,17 @@
+ckad-a-control-plane ckad-a-worker ckad-a-worker2
+ckad-a-control-plane	v1.37.0
+ckad-a-worker	v1.37.0
+ckad-a-worker2	v1.37.0
+NS                   POD                                            NODE
+guide                api-5555b5df-5dxkh                             ckad-a-worker2
+guide                api-5555b5df-q8c9v                             ckad-a-worker
+guide                api-5555b5df-szcgn                             ckad-a-worker2
+kube-system          coredns-57c659fb6d-kx2cc                       1/1     Running   0             <âge>
+kube-system          coredns-57c659fb6d-4fjz7                       1/1     Running   0             <âge>
+traefik              traefik-f9cc8cf6b-7hmwx                        1/1     Running   0             <âge>
+NAMESPACE            NAME                                           READY   STATUS    RESTARTS      AGE
+guide                api-5555b5df-5dxkh                             1/1     Running   1 (il y a <durée>)   <âge>
+guide                api-5555b5df-q8c9v                             1/1     Running   1 (il y a <durée>)   <âge>
+node/ckad-a-control-plane
+node/ckad-a-worker
+node/ckad-a-worker2

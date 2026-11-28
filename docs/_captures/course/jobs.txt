@@ -1,0 +1,6 @@
+job.batch/calc created
+job.batch/calc condition met
+NAME   STATUS     COMPLETIONS   DURATION   AGE
+calc   Complete   3/3           <âge>         <âge>
+calcul fini
+Found 3 pods, using pod/calc-kzcww

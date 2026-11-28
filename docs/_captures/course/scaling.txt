@@ -1,0 +1,18 @@
+deployment.apps/front resource requirements updated
+horizontalpodautoscaler.autoscaling/front autoscaled
+NAME    REFERENCE          TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+front   Deployment/front   cpu: <unknown>/70%   2         5         3          <âge>
+maxReplicas: 5
+metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 70
+        type: Utilization
+    type: Resource
+minReplicas: 2
+scaleTargetRef:
+  apiVersion: apps/v1
+  kind: Deployment
+  name: front
+Flag --cpu-percent has been deprecated, Use --cpu with percentage or resource quantity format (e.g., '70%' for utilization or '500m' for milliCPU).

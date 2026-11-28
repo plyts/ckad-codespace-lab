@@ -199,9 +199,13 @@ wake() {
     for n in $(seq 1 60); do kubectl --context "$c" get nodes >/dev/null 2>&1 && break; sleep 3; done
     kubectl --context "$c" wait --for=condition=Ready node --all --timeout=180s >/dev/null 2>&1 || warn "[$c] nœuds pas encore prêts"
     kubectl --context "$c" -n kube-system rollout restart deploy/coredns >/dev/null 2>&1
-    kubectl --context "$c" -n traefik rollout restart deploy/traefik >/dev/null 2>&1
     kubectl --context "$c" -n kube-system rollout status deploy/coredns --timeout=180s >/dev/null 2>&1 \
       && ok "[$c] CoreDNS prêt" || warn "[$c] CoreDNS pas encore prêt (relance : lab wake)"
+    # Traefik APRÈS le réseau du nœud : relancé trop tôt, il ne joint pas l'API (règles réseau périmées).
+    kubectl --context "$c" apply -f "$ROOT/infra/traefik.yaml" >/dev/null 2>&1
+    kubectl --context "$c" -n traefik rollout restart deploy/traefik >/dev/null 2>&1
+    kubectl --context "$c" -n traefik rollout status deploy/traefik --timeout=180s >/dev/null 2>&1 \
+      && ok "[$c] Traefik prêt" || warn "[$c] Traefik pas encore prêt (relance : lab wake)"
   done
 }
 

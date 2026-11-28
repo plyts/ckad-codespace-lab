@@ -1,0 +1,6 @@
+namespace/cours-b labeled
+→ refusé par restricted
+namespace/cours-b unlabeled
+Warning: existing pods in namespace "cours-b" violate the new PodSecurity enforce level "restricted:latest"
+Warning: withdefaults: allowPrivilegeEscalation != false, unrestricted capabilities, runAsNonRoot != true, seccompProfile
+Error from server (Forbidden): pods "root-pod" is forbidden: violates PodSecurity "restricted:latest": allowPrivilegeEscalation != false (container "root-pod" must set securityContext.allowPrivilegeEscalation=false), unrestricted capabilities (container "root-pod" must set securityContext.capabilities.drop=["ALL"]), runAsNonRoot != true (pod or container "root-pod" must set securityContext.runAsNonRoot=true), seccompProfile (pod or container "root-pod" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")

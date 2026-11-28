@@ -1,0 +1,10 @@
+configmap/web-conf created
+configmap/web-conf patched
+configmap/nginx-conf created
+COLOR: blue
+LEVEL: debug
+MODE: prod
+pod/cfg created
+pod/cfg condition met
+debug prod
+server { listen 8080; }

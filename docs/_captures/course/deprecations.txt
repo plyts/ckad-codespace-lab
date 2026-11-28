@@ -1,0 +1,22 @@
+horizontalpodautoscalers            hpa          autoscaling/v2                    true         HorizontalPodAutoscaler
+cronjobs                            cj           batch/v1                          true         CronJob
+ingresses                           ing          networking.k8s.io/v1              true         Ingress
+poddisruptionbudgets                pdb          policy/v1                         true         PodDisruptionBudget
+GROUP:      batch
+KIND:       CronJob
+VERSION:    v1
+GROUP:      networking.k8s.io
+KIND:       Ingress
+VERSION:    v1
+
+FIELD: backend <IngressBackend>
+
+
+DESCRIPTION:
+    backend defines the referenced service endpoint to which the traffic will be
+    forwarded to.
+    IngressBackend describes all endpoints for a given service and port.
+    
+→ batch/v1beta1 retiré : utiliser batch/v1
+error: resource mapping not found for name: "old" namespace: "" from "STDIN": no matches for kind "CronJob" in version "batch/v1beta1"
+ensure CRDs are installed first

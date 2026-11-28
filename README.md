@@ -9,7 +9,8 @@ d'avance dans le dépôt.
   (voir [versions.md](versions.md))
 - **45 exercices**, 9 par domaine officiel, avec indices, réponses cachées et contrôles de l'état réel
 - Le fil conducteur et des pannes simulées (`ex scenario`), **5 examens blancs** notés par scripts (`mock`)
-- Un guide HTML (notions, scénarios, examens corrigés, commandes), sur le port 8000 ou GitHub Pages
+- Un guide HTML bilingue (français / anglais) : notions, **cours complet** aux commandes exécutées,
+  **QCU** de plus de cent questions, scénarios, examens corrigés, commandes ; port 8000 ou GitHub Pages
 
 > **Mode d'emploi complet** (Codespaces, examens blancs, GitHub Pages, quotas, dépannage,
 > maintenance) : [MODE-EMPLOI.md](MODE-EMPLOI.md). Guide en ligne :
@@ -44,6 +45,7 @@ ex start d1-01
 | `ex status` | Tableau de progression par domaine, révisions dues |
 | `ex next` | Prochain exercice conseillé (révisions J+2 et J+7 d'abord) |
 | `ex scenario [list\|<id>]` | Fil conducteur (application sur 4 journées) et pannes |
+| `ex quiz [0-6] [-n N]` | QCU dans le terminal (mêmes questions que le guide) |
 | `ex ask <id>` | Prépare `~/ckad-questions/<id>-….md` (consigne, état, erreurs) à coller **toi-même** dans une IA, hors du labo |
 | `mock start N` · `mock time N` · `mock grade N` · `mock review N` · `mock solution N T` | Examens blancs 1 à 5 |
 | `lab up [a\|b\|all]` · `lab reset` · `lab status` · `lab ssh ckad-a` | Clusters (`lab ssh` imite le `ssh <hôte>` de l'examen) |

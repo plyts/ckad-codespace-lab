@@ -1,0 +1,7 @@
+configmap/app-conf created
+pod/vols created
+pod/vols condition met
+labels
+mode
+prod
+tmpfs                    16.0M         0     16.0M   0% /scratch
