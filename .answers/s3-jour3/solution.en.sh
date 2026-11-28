@@ -10,8 +10,12 @@ until [ -n "$pod" ]; do
     -o jsonpath='{range .items[?(@.spec.containers[0].args[0]=="-text=api v2")]}{.metadata.name}{"\n"}{end}' | head -1)
   sleep 1
 done
-until kubectl -n boutique-j3 get pod "$pod" --no-headers | grep -qE 'CrashLoopBackOff|Error'; do sleep 1; done
-kubectl -n boutique-j3 get pod "$pod" --no-headers | awk '{print $3}' > ~/ckad/s3-jour3/incident.txt
+# Read the status once and record that value: read again later, it may already be Running.
+st=""
+until [[ "$st" == CrashLoopBackOff || "$st" == Error ]]; do
+  st=$(kubectl -n boutique-j3 get pod "$pod" --no-headers | awk '{print $3}'); sleep 1
+done
+echo "$st" > ~/ckad/s3-jour3/incident.txt
 # The container died: its logs are those of the current instance or, otherwise, --previous
 until { kubectl -n boutique-j3 logs "$pod" 2>/dev/null; kubectl -n boutique-j3 logs "$pod" --previous 2>/dev/null; } | grep -q 'flag provided'; do sleep 1; done
 { kubectl -n boutique-j3 logs "$pod" 2>/dev/null; kubectl -n boutique-j3 logs "$pod" --previous 2>/dev/null; } \

@@ -40,6 +40,8 @@ COMMENTS = {
     "VARIANTE : kubectl -n d2-05 edit deploy api, puis modifier les mêmes champs dans vim.": "VARIANT: kubectl -n d2-05 edit deploy api, then change the same fields in vim.",
     "VARIANTE : kubectl -n d3-03 edit deploy api (plus naturel à l'examen avec vim).": "VARIANT: kubectl -n d3-03 edit deploy api (more natural in the exam with vim).",
     "VARIANTE podman (identique) : podman build -t ckad/hello:v1 . && podman save -o hello.tar ckad/hello:v1": "podman VARIANT (identical): podman build -t ckad/hello:v1 . && podman save -o hello.tar ckad/hello:v1",
+    "Lire le statut une seule fois et noter cette valeur : relu ensuite, il peut déjà être Running.":
+        "Read the status once and record that value: read again later, it may already be Running.",
     "Vérification à la main": "Manual check",
     "Vérification à la main :": "Manual check:",
     "un conteneur qui plante repasse brièvement en Running à chaque redémarrage.": "a crashing container is briefly Running again at each restart.",
